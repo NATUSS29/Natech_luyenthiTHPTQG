@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
-  <!-- Firebase SDK (Compat v10 để chạy trực tiếp trên GitHub Pages không cần build) -->
+  <!-- Firebase SDK (Compat v10 chạy trực tiếp trên GitHub Pages) -->
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 
@@ -77,6 +77,11 @@
           class="px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 transition flex items-center gap-1.5">
           <span>Lịch sử làm bài</span>
         </button>
+
+        <a href="#aboutNatechSection" onclick="goHome()"
+          class="hidden sm:inline-block px-3 py-2 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 transition">
+          Giới thiệu
+        </a>
 
         <button id="btnAdminNav" type="button" onclick="openAdminView()"
           class="hidden px-3 py-2 rounded-lg text-sm font-semibold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition items-center gap-1.5">
@@ -146,7 +151,7 @@
       </div>
     </section>
 
-    <!-- VIEW 1: Danh sách đề thi -->
+    <!-- VIEW 1: Danh sách đề thi & Giới thiệu -->
     <section id="homeView">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
@@ -169,6 +174,76 @@
       </div>
 
       <div id="quizGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+
+      <!-- Phần Giới thiệu Website & Thông tin tác giả -->
+      <div id="aboutNatechSection" class="mt-12 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-7">
+            <span class="inline-block text-xs font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
+              Giới thiệu hệ thống
+            </span>
+            <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-2.5">
+              Natech — Nền Tảng Luyện Thi Trắc Nghiệm Trực Tuyến
+            </h2>
+            <p class="text-sm text-slate-600 mt-2 leading-relaxed">
+              <strong>Natech</strong> được xây dựng nhằm hỗ trợ học sinh ôn luyện và làm đề thi thử theo chuẩn cấu trúc kỳ thi Tốt nghiệp THPT Quốc Gia (gồm Phần I trắc nghiệm 4 lựa chọn và Phần II trắc nghiệm Đúng/Sai), chấm điểm tự động theo quy chế và lưu trữ lịch sử làm bài minh bạch.
+            </p>
+            <p class="text-xs text-slate-500 mt-3">
+              Cần cấp tài khoản học sinh, hỗ trợ kỹ thuật hoặc góp ý nội dung đề thi, vui lòng liên hệ trực tiếp quản trị viên qua các kênh bên cạnh.
+            </p>
+          </div>
+
+          <div class="lg:col-span-5 bg-slate-50 rounded-2xl border border-slate-200 p-5 space-y-3">
+            <div class="flex items-center gap-3 pb-3 border-b border-slate-200">
+              <div class="w-11 h-11 rounded-xl bg-indigo-600 text-white font-extrabold text-base flex items-center justify-center shrink-0">
+                AT
+              </div>
+              <div>
+                <div class="text-xs font-semibold uppercase tracking-wider text-slate-400">Quản trị viên &amp; Phát triển</div>
+                <div class="text-base font-bold text-slate-900">Nguyễn Anh Tú</div>
+              </div>
+            </div>
+
+            <div class="space-y-2.5 text-sm">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-slate-500 font-medium">Facebook:</span>
+                <a href="https://www.facebook.com/nguyenanhtu169663" target="_blank" rel="noopener noreferrer"
+                  class="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline truncate">
+                  facebook.com/nguyenanhtu169663
+                </a>
+              </div>
+
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-slate-500 font-medium">Zalo:</span>
+                <div class="flex items-center gap-2">
+                  <a href="https://zalo.me/0962139328" target="_blank" rel="noopener noreferrer"
+                    class="font-semibold text-slate-900 hover:text-indigo-600">
+                    0962139328
+                  </a>
+                  <button type="button" onclick="copyContactText('0962139328', 'Đã sao chép số Zalo')"
+                    class="px-2 py-0.5 rounded bg-white border border-slate-300 hover:bg-slate-100 text-[11px] font-semibold text-slate-700">
+                    Copy
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-slate-500 font-medium">Gmail:</span>
+                <div class="flex items-center gap-2 min-w-0">
+                  <a href="mailto:tunguyenne292k8@gmail.com"
+                    class="font-semibold text-slate-900 hover:text-indigo-600 truncate">
+                    tunguyenne292k8@gmail.com
+                  </a>
+                  <button type="button" onclick="copyContactText('tunguyenne292k8@gmail.com', 'Đã sao chép địa chỉ Gmail')"
+                    class="px-2 py-0.5 rounded bg-white border border-slate-300 hover:bg-slate-100 text-[11px] font-semibold text-slate-700 shrink-0">
+                    Copy
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- VIEW 2: Làm bài trắc nghiệm -->
@@ -432,9 +507,21 @@
 
   <!-- Chân trang -->
   <footer class="bg-white border-t border-slate-200 mt-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-      <div>© 2026 <strong>Natech</strong> — Nền tảng luyện thi trắc nghiệm chuẩn cấu trúc THPT Quốc Gia.</div>
-      <div>Đồng bộ Cloud Firestore • Bảo mật tài khoản quản trị</div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+      <div>© 2026 <strong>Natech</strong> — Phát triển bởi <strong>Nguyễn Anh Tú</strong>.</div>
+      <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+        <a href="https://www.facebook.com/nguyenanhtu169663" target="_blank" rel="noopener noreferrer" class="hover:text-indigo-600 font-medium">
+          Facebook: Nguyễn Anh Tú
+        </a>
+        <span>•</span>
+        <a href="https://zalo.me/0962139328" target="_blank" rel="noopener noreferrer" class="hover:text-indigo-600 font-medium">
+          Zalo: 0962139328
+        </a>
+        <span>•</span>
+        <a href="mailto:tunguyenne292k8@gmail.com" class="hover:text-indigo-600 font-medium">
+          Gmail: tunguyenne292k8@gmail.com
+        </a>
+      </div>
     </div>
   </footer>
 
@@ -710,8 +797,20 @@
     }
 
     // =========================================================================
-    // 3. TIỆN ÍCH CHUẨN HÓA & BĂM MẬT KHẨU
+    // 3. TIỆN ÍCH CHUẨN HÓA, SAO CHÉP & BĂM MẬT KHẨU
     // =========================================================================
+    function copyContactText(text, successMsg) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast(successMsg);
+        }).catch(() => {
+          showToast(text);
+        });
+      } else {
+        showToast(text);
+      }
+    }
+
     function normalizeEmail(email) {
       return String(email || '').trim().toLowerCase();
     }
@@ -784,7 +883,6 @@
     // =========================================================================
     async function initCloudSync() {
       try {
-        // Kiểm tra xem đã từng khởi tạo đề mẫu trên Cloud chưa (chỉ seed đúng 1 lần duy nhất)
         const metaRef = db.collection(COLLECTIONS.META).doc('bootstrap');
         const metaSnap = await metaRef.get();
         if (!metaSnap.exists) {
@@ -796,7 +894,6 @@
           await batch.commit();
         }
 
-        // Lắng nghe realtime danh sách đề thi
         db.collection(COLLECTIONS.QUIZZES).onSnapshot(
           (snap) => {
             const list = [];
@@ -817,14 +914,12 @@
           }
         );
 
-        // Lắng nghe realtime danh sách tài khoản
         db.collection(COLLECTIONS.USERS).onSnapshot(
           (snap) => {
             const list = [];
             snap.forEach(doc => list.push(doc.data()));
             usersCache = list;
 
-            // Xác thực lại phiên đăng nhập hiện tại nếu tài khoản bị xóa
             if (currentUser) {
               const stillExists = getUsers().some(u => normalizeEmail(u.email) === currentUser.email);
               if (!stillExists) {
@@ -841,7 +936,6 @@
           }
         );
 
-        // Lắng nghe realtime lịch sử làm bài
         db.collection(COLLECTIONS.HISTORY).onSnapshot(
           (snap) => {
             const list = [];
@@ -898,7 +992,6 @@
       submitBtn.textContent = 'Đang kiểm tra...';
 
       try {
-        // Đọc trực tiếp từ Firestore để luôn lấy mật khẩu mới nhất vừa được Admin cấp
         const userDocRef = db.collection(COLLECTIONS.USERS).doc(email);
         const userSnap = await userDocRef.get();
 
@@ -907,7 +1000,7 @@
             const salt = generateSalt();
             const passwordHash = hashPasswordWithSalt(password, salt);
             const adminUser = {
-              name: 'Quản trị viên Natech',
+              name: 'Nguyễn Anh Tú',
               email: ADMIN_EMAIL,
               salt,
               passwordHash,
