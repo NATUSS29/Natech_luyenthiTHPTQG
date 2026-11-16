@@ -160,7 +160,7 @@
             Cấu trúc chuẩn THPT Quốc Gia: Phần I (Trắc nghiệm 4 lựa chọn A, B, C, D) &amp; Phần II (Trắc nghiệm Đúng/Sai a, b, c, d).
           </p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
           <select id="subjectFilter" onchange="renderQuizList()"
             class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
             <option value="ALL">Tất cả môn học</option>
@@ -169,6 +169,13 @@
             <option value="Vật lí">Vật lí</option>
             <option value="Tiếng Anh">Tiếng Anh</option>
             <option value="Tổng hợp">Tổng hợp</option>
+          </select>
+
+          <select id="accessFilter" onchange="renderQuizList()"
+            class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="ALL">Tất cả loại đề</option>
+            <option value="public">Ai cũng thi được</option>
+            <option value="assigned">Chỉ tài khoản được cấp</option>
           </select>
         </div>
       </div>
@@ -186,60 +193,34 @@
               Natech — Nền Tảng Luyện Thi Trắc Nghiệm Trực Tuyến
             </h2>
             <p class="text-sm text-slate-600 mt-2 leading-relaxed">
-              <strong>Natech</strong> được xây dựng nhằm hỗ trợ học sinh ôn luyện và làm đề thi thử theo chuẩn cấu trúc kỳ thi Tốt nghiệp THPT Quốc Gia (gồm Phần I trắc nghiệm 4 lựa chọn và Phần II trắc nghiệm Đúng/Sai), chấm điểm tự động theo quy chế và lưu trữ lịch sử làm bài minh bạch.
+              <strong>Natech</strong> hỗ trợ học sinh ôn luyện và làm đề thi thử chuẩn cấu trúc THPT Quốc Gia (Phần I trắc nghiệm A, B, C, D và Phần II Đúng/Sai a, b, c, d), chấm điểm tự động và lưu lịch sử làm bài minh bạch.
             </p>
             <p class="text-xs text-slate-500 mt-3">
               Cần cấp tài khoản học sinh, hỗ trợ kỹ thuật hoặc góp ý nội dung đề thi, vui lòng liên hệ trực tiếp quản trị viên qua các kênh bên cạnh.
             </p>
           </div>
 
-          <div class="lg:col-span-5 bg-slate-50 rounded-2xl border border-slate-200 p-5 space-y-3">
-            <div class="flex items-center gap-3 pb-3 border-b border-slate-200">
-              <div class="w-11 h-11 rounded-xl bg-indigo-600 text-white font-extrabold text-base flex items-center justify-center shrink-0">
-                AT
-              </div>
-              <div>
-                <div class="text-xs font-semibold uppercase tracking-wider text-slate-400">Quản trị viên &amp; Phát triển</div>
-                <div class="text-base font-bold text-slate-900">Nguyễn Anh Tú</div>
-              </div>
+          <div class="lg:col-span-5 bg-slate-50 rounded-2xl border border-slate-200 p-5 space-y-2.5 text-sm">
+            <div class="font-bold text-base text-slate-900 pb-2 border-b border-slate-200">
+              Quản trị viên: Nguyễn Anh Tú
             </div>
-
-            <div class="space-y-2.5 text-sm">
-              <div class="flex items-center justify-between gap-2">
-                <span class="text-slate-500 font-medium">Facebook:</span>
-                <a href="https://www.facebook.com/nguyenanhtu169663" target="_blank" rel="noopener noreferrer"
-                  class="font-semibold text-indigo-600 hover:text-indigo-700 hover:underline truncate">
-                  facebook.com/nguyenanhtu169663
-                </a>
-              </div>
-
-              <div class="flex items-center justify-between gap-2">
-                <span class="text-slate-500 font-medium">Zalo:</span>
-                <div class="flex items-center gap-2">
-                  <a href="https://zalo.me/0962139328" target="_blank" rel="noopener noreferrer"
-                    class="font-semibold text-slate-900 hover:text-indigo-600">
-                    0962139328
-                  </a>
-                  <button type="button" onclick="copyContactText('0962139328', 'Đã sao chép số Zalo')"
-                    class="px-2 py-0.5 rounded bg-white border border-slate-300 hover:bg-slate-100 text-[11px] font-semibold text-slate-700">
-                    Copy
-                  </button>
-                </div>
-              </div>
-
-              <div class="flex items-center justify-between gap-2">
-                <span class="text-slate-500 font-medium">Gmail:</span>
-                <div class="flex items-center gap-2 min-w-0">
-                  <a href="mailto:tunguyenne292k8@gmail.com"
-                    class="font-semibold text-slate-900 hover:text-indigo-600 truncate">
-                    tunguyenne292k8@gmail.com
-                  </a>
-                  <button type="button" onclick="copyContactText('tunguyenne292k8@gmail.com', 'Đã sao chép địa chỉ Gmail')"
-                    class="px-2 py-0.5 rounded bg-white border border-slate-300 hover:bg-slate-100 text-[11px] font-semibold text-slate-700 shrink-0">
-                    Copy
-                  </button>
-                </div>
-              </div>
+            <div class="flex justify-between gap-2">
+              <span class="text-slate-500">Facebook:</span>
+              <a href="https://www.facebook.com/nguyenanhtu169663" target="_blank" rel="noopener noreferrer" class="font-semibold text-indigo-600 hover:underline truncate">
+                facebook.com/nguyenanhtu169663
+              </a>
+            </div>
+            <div class="flex justify-between gap-2">
+              <span class="text-slate-500">Zalo:</span>
+              <a href="https://zalo.me/0962139328" target="_blank" rel="noopener noreferrer" class="font-semibold text-slate-900 hover:text-indigo-600">
+                0962139328
+              </a>
+            </div>
+            <div class="flex justify-between gap-2">
+              <span class="text-slate-500">Gmail:</span>
+              <a href="mailto:tunguyenne292k8@gmail.com" class="font-semibold text-slate-900 hover:text-indigo-600 truncate">
+                tunguyenne292k8@gmail.com
+              </a>
             </div>
           </div>
         </div>
@@ -462,11 +443,19 @@
               </select>
             </div>
             <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Quyền làm bài</label>
+              <select id="editorAccessMode"
+                class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="public">Ai cũng thi được</option>
+                <option value="assigned">Chỉ tài khoản được cấp</option>
+              </select>
+            </div>
+            <div>
               <label class="block text-xs font-semibold text-slate-700 mb-1">Thời gian (phút)</label>
               <input id="editorDuration" type="number" min="1" max="180" value="15"
                 class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
             </div>
-            <div class="sm:col-span-2">
+            <div>
               <label class="block text-xs font-semibold text-slate-700 mb-1">Mô tả ngắn</label>
               <input id="editorDescription" type="text" placeholder="Mô tả nội dung trọng tâm của đề..."
                 class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
@@ -510,17 +499,11 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-slate-500">
       <div>© 2026 <strong>Natech</strong> — Phát triển bởi <strong>Nguyễn Anh Tú</strong>.</div>
       <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
-        <a href="https://www.facebook.com/nguyenanhtu169663" target="_blank" rel="noopener noreferrer" class="hover:text-indigo-600 font-medium">
-          Facebook: Nguyễn Anh Tú
-        </a>
+        <a href="https://www.facebook.com/nguyenanhtu169663" target="_blank" rel="noopener noreferrer" class="hover:text-indigo-600 font-medium">Facebook: Nguyễn Anh Tú</a>
         <span>•</span>
-        <a href="https://zalo.me/0962139328" target="_blank" rel="noopener noreferrer" class="hover:text-indigo-600 font-medium">
-          Zalo: 0962139328
-        </a>
+        <a href="https://zalo.me/0962139328" target="_blank" rel="noopener noreferrer" class="hover:text-indigo-600 font-medium">Zalo: 0962139328</a>
         <span>•</span>
-        <a href="mailto:tunguyenne292k8@gmail.com" class="hover:text-indigo-600 font-medium">
-          Gmail: tunguyenne292k8@gmail.com
-        </a>
+        <a href="mailto:tunguyenne292k8@gmail.com" class="hover:text-indigo-600 font-medium">Gmail: tunguyenne292k8@gmail.com</a>
       </div>
     </div>
   </footer>
@@ -698,6 +681,7 @@
         id: 'quiz-toan-thptqg-01',
         title: 'Đề Luyện Tập Toán THPT Quốc Gia - Hàm Số & Hình Học',
         subject: 'Toán học',
+        accessMode: 'public',
         description: 'Gồm Phần I trắc nghiệm 4 lựa chọn và Phần II Đúng/Sai chuẩn định dạng Bộ GD&ĐT.',
         durationMinutes: 15,
         mcqQuestions: [
@@ -734,6 +718,7 @@
         id: 'quiz-tinhoc-thptqg-01',
         title: 'Đề Luyện Tập Tin Học THPT Quốc Gia - Thuật Toán & Cấu Trúc Dữ Liệu',
         subject: 'Tin học',
+        accessMode: 'assigned',
         description: 'Ôn tập độ phức tạp thuật toán, mảng, vòng lặp và tư duy lập trình cơ bản.',
         durationMinutes: 15,
         mcqQuestions: [
@@ -797,20 +782,8 @@
     }
 
     // =========================================================================
-    // 3. TIỆN ÍCH CHUẨN HÓA, SAO CHÉP & BĂM MẬT KHẨU
+    // 3. TIỆN ÍCH CHUẨN HÓA & BĂM MẬT KHẨU
     // =========================================================================
-    function copyContactText(text, successMsg) {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(() => {
-          showToast(successMsg);
-        }).catch(() => {
-          showToast(text);
-        });
-      } else {
-        showToast(text);
-      }
-    }
-
     function normalizeEmail(email) {
       return String(email || '').trim().toLowerCase();
     }
@@ -1218,9 +1191,14 @@
     function renderQuizList() {
       const grid = document.getElementById('quizGrid');
       const filter = document.getElementById('subjectFilter').value;
-      const filtered = filter === 'ALL'
-        ? quizzes
-        : quizzes.filter(q => q.subject === filter);
+      const accessFilter = document.getElementById('accessFilter')?.value || 'ALL';
+
+      const filtered = quizzes.filter(q => {
+        const matchSubject = filter === 'ALL' || q.subject === filter;
+        const mode = q.accessMode || 'public';
+        const matchAccess = accessFilter === 'ALL' || mode === accessFilter;
+        return matchSubject && matchAccess;
+      });
 
       if (!filtered.length) {
         grid.innerHTML = `
@@ -1237,13 +1215,21 @@
       grid.innerHTML = filtered.map(quiz => {
         const mcqCount = (quiz.mcqQuestions || []).length;
         const tfCount = (quiz.tfQuestions || []).length;
+        const isAssigned = (quiz.accessMode || 'public') === 'assigned';
+        const canStart = !isAssigned || Boolean(currentUser);
+
         return `
           <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between hover:border-indigo-300 hover:shadow-md transition">
             <div>
-              <div class="flex items-center justify-between gap-2">
-                <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
-                  ${escapeHtml(quiz.subject)}
-                </span>
+              <div class="flex items-center justify-between gap-2 flex-wrap">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
+                    ${escapeHtml(quiz.subject)}
+                  </span>
+                  <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${isAssigned ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}">
+                    ${isAssigned ? 'Chỉ tài khoản được cấp' : 'Ai cũng thi được'}
+                  </span>
+                </div>
                 <span class="text-xs font-medium text-slate-500">⏱ ${Number(quiz.durationMinutes || 15)} phút</span>
               </div>
               <h3 class="text-lg font-bold text-slate-900 mt-3">${escapeHtml(quiz.title)}</h3>
@@ -1254,8 +1240,8 @@
               </div>
             </div>
             <button type="button" onclick="startQuiz('${escapeHtml(quiz.id)}')"
-              class="mt-6 w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-sm transition">
-              Bắt đầu làm bài
+              class="mt-6 w-full py-2.5 rounded-xl ${canStart ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-amber-600 hover:bg-amber-700'} text-white text-sm font-semibold shadow-sm transition">
+              ${canStart ? 'Bắt đầu làm bài' : 'Đăng nhập để làm đề này'}
             </button>
           </div>
         `;
@@ -1266,6 +1252,11 @@
       const found = quizzes.find(q => q.id === quizId);
       if (!found) {
         showToast('Không tìm thấy đề thi.', true);
+        return;
+      }
+      if ((found.accessMode || 'public') === 'assigned' && !currentUser) {
+        showToast('Đề này chỉ dành cho tài khoản đã được cấp. Vui lòng đăng nhập!', true);
+        openAuthModal();
         return;
       }
       activeQuiz = JSON.parse(JSON.stringify(found));
@@ -1934,24 +1925,27 @@
         return;
       }
 
-      wrap.innerHTML = quizzes.map(q => `
-        <div class="p-3.5 rounded-xl border border-slate-200 flex items-center justify-between gap-3">
-          <div class="min-w-0">
-            <div class="text-sm font-bold text-slate-900 truncate">${escapeHtml(q.title)}</div>
-            <div class="text-xs text-slate-500">${escapeHtml(q.subject)} • ${(q.mcqQuestions || []).length} câu P1 • ${(q.tfQuestions || []).length} câu P2</div>
+      wrap.innerHTML = quizzes.map(q => {
+        const modeLabel = (q.accessMode || 'public') === 'assigned' ? 'Chỉ tài khoản cấp' : 'Ai cũng thi';
+        return `
+          <div class="p-3.5 rounded-xl border border-slate-200 flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <div class="text-sm font-bold text-slate-900 truncate">${escapeHtml(q.title)}</div>
+              <div class="text-xs text-slate-500">${escapeHtml(q.subject)} • ${modeLabel} • ${(q.mcqQuestions || []).length} câu P1 • ${(q.tfQuestions || []).length} câu P2</div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button type="button" onclick="loadQuizIntoEditor('${escapeHtml(q.id)}')"
+                class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">
+                Sửa
+              </button>
+              <button type="button" onclick="confirmDeleteQuiz('${escapeHtml(q.id)}')"
+                class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700">
+                Xóa
+              </button>
+            </div>
           </div>
-          <div class="flex items-center gap-1.5 shrink-0">
-            <button type="button" onclick="loadQuizIntoEditor('${escapeHtml(q.id)}')"
-              class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">
-              Sửa
-            </button>
-            <button type="button" onclick="confirmDeleteQuiz('${escapeHtml(q.id)}')"
-              class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700">
-              Xóa
-            </button>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     function resetEditorForNewQuiz() {
@@ -1959,6 +1953,7 @@
       document.getElementById('editorHeading').textContent = 'Tạo Đề Thi Mới';
       document.getElementById('editorTitle').value = '';
       document.getElementById('editorSubject').value = 'Toán học';
+      document.getElementById('editorAccessMode').value = 'public';
       document.getElementById('editorDuration').value = '15';
       document.getElementById('editorDescription').value = '';
       document.getElementById('editorMcqList').innerHTML = '';
@@ -1974,6 +1969,7 @@
       document.getElementById('editorHeading').textContent = `Chỉnh sửa: ${q.title}`;
       document.getElementById('editorTitle').value = q.title;
       document.getElementById('editorSubject').value = q.subject;
+      document.getElementById('editorAccessMode').value = q.accessMode || 'public';
       document.getElementById('editorDuration').value = String(q.durationMinutes || 15);
       document.getElementById('editorDescription').value = q.description || '';
 
@@ -1986,55 +1982,55 @@
       (q.tfQuestions || []).forEach(item => addEditorTfQuestion(item));
     }
 
-function addEditorMcqQuestion(data = null) {
-  const wrap = document.getElementById('editorMcqList');
-  const card = document.createElement('div');
-  card.className = 'p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-3 editor-mcq-item';
-  const opts = data?.options || ['', '', '', ''];
-  const correct = Number(data?.correctIndex ?? 0);
-  const groupName = `mcq_correct_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    function addEditorMcqQuestion(data = null) {
+      const wrap = document.getElementById('editorMcqList');
+      const card = document.createElement('div');
+      card.className = 'p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-3 editor-mcq-item';
+      const opts = data?.options || ['', '', '', ''];
+      const correct = Number(data?.correctIndex ?? 0);
+      const groupName = `mcq_correct_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
-  card.innerHTML = `
-    <div class="flex items-center justify-between gap-2">
-      <span class="text-xs font-bold text-indigo-700">Câu hỏi trắc nghiệm (A, B, C, D)</span>
-      <div class="flex items-center gap-2">
-        <label class="text-xs font-semibold text-slate-700">Đáp án đúng:</label>
-        <select class="px-2.5 py-1 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-900 text-xs font-bold mcq-correct-select">
-          <option value="0" ${correct === 0 ? 'selected' : ''}>A</option>
-          <option value="1" ${correct === 1 ? 'selected' : ''}>B</option>
-          <option value="2" ${correct === 2 ? 'selected' : ''}>C</option>
-          <option value="3" ${correct === 3 ? 'selected' : ''}>D</option>
-        </select>
-        <button type="button" onclick="this.closest('.editor-mcq-item').remove()" class="text-xs text-rose-600 hover:underline ml-1">Xóa câu</button>
-      </div>
-    </div>
-    <input type="text" placeholder="Nội dung câu hỏi..." value="${escapeHtml(data?.prompt || '')}"
-      class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm mcq-prompt" />
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-      ${['A', 'B', 'C', 'D'].map((lbl, idx) => `
-        <div class="flex items-center gap-2">
-          <input type="radio" name="${groupName}" value="${idx}" ${idx === correct ? 'checked' : ''}
-            onchange="this.closest('.editor-mcq-item').querySelector('.mcq-correct-select').value = '${idx}'"
-            class="accent-emerald-600 mcq-correct" title="Chọn ${lbl} làm đáp án đúng" />
-          <span class="text-xs font-bold text-slate-600">${lbl}.</span>
-          <input type="text" placeholder="Phương án ${lbl}" value="${escapeHtml(opts[idx] || '')}"
-            class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs mcq-opt" />
+      card.innerHTML = `
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs font-bold text-indigo-700">Câu hỏi trắc nghiệm (A, B, C, D)</span>
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-semibold text-slate-700">Đáp án đúng:</label>
+            <select class="px-2.5 py-1 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-900 text-xs font-bold mcq-correct-select">
+              <option value="0" ${correct === 0 ? 'selected' : ''}>A</option>
+              <option value="1" ${correct === 1 ? 'selected' : ''}>B</option>
+              <option value="2" ${correct === 2 ? 'selected' : ''}>C</option>
+              <option value="3" ${correct === 3 ? 'selected' : ''}>D</option>
+            </select>
+            <button type="button" onclick="this.closest('.editor-mcq-item').remove()" class="text-xs text-rose-600 hover:underline ml-1">Xóa câu</button>
+          </div>
         </div>
-      `).join('')}
-    </div>
-    <input type="text" placeholder="Giải thích chi tiết (tùy chọn)..." value="${escapeHtml(data?.explanation || '')}"
-      class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs mcq-expl" />
-  `;
+        <input type="text" placeholder="Nội dung câu hỏi..." value="${escapeHtml(data?.prompt || '')}"
+          class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm mcq-prompt" />
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          ${['A', 'B', 'C', 'D'].map((lbl, idx) => `
+            <div class="flex items-center gap-2">
+              <input type="radio" name="${groupName}" value="${idx}" ${idx === correct ? 'checked' : ''}
+                onchange="this.closest('.editor-mcq-item').querySelector('.mcq-correct-select').value = '${idx}'"
+                class="accent-emerald-600 mcq-correct" title="Chọn ${lbl} làm đáp án đúng" />
+              <span class="text-xs font-bold text-slate-600">${lbl}.</span>
+              <input type="text" placeholder="Phương án ${lbl}" value="${escapeHtml(opts[idx] || '')}"
+                class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs mcq-opt" />
+            </div>
+          `).join('')}
+        </div>
+        <input type="text" placeholder="Giải thích chi tiết (tùy chọn)..." value="${escapeHtml(data?.explanation || '')}"
+          class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs mcq-expl" />
+      `;
 
-  const selectEl = card.querySelector('.mcq-correct-select');
-  selectEl.addEventListener('change', () => {
-    const chosen = Number(selectEl.value);
-    const radios = card.querySelectorAll('.mcq-correct');
-    if (radios[chosen]) radios[chosen].checked = true;
-  });
+      const selectEl = card.querySelector('.mcq-correct-select');
+      selectEl.addEventListener('change', () => {
+        const chosen = Number(selectEl.value);
+        const radios = card.querySelectorAll('.mcq-correct');
+        if (radios[chosen]) radios[chosen].checked = true;
+      });
 
-  wrap.appendChild(card);
-}
+      wrap.appendChild(card);
+    }
 
     function addEditorTfQuestion(data = null) {
       const wrap = document.getElementById('editorTfList');
@@ -2085,6 +2081,7 @@ function addEditorMcqQuestion(data = null) {
 
       const title = document.getElementById('editorTitle').value.trim();
       const subject = document.getElementById('editorSubject').value;
+      const accessMode = document.getElementById('editorAccessMode')?.value || 'public';
       const durationMinutes = Math.max(1, Number(document.getElementById('editorDuration').value || 15));
       const description = document.getElementById('editorDescription').value.trim();
 
@@ -2142,6 +2139,7 @@ function addEditorMcqQuestion(data = null) {
         id: quizId,
         title,
         subject,
+        accessMode,
         description: description || `Đề luyện tập môn ${subject}`,
         durationMinutes,
         mcqQuestions,
