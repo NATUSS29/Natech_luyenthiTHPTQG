@@ -8,6 +8,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Firebase SDK (Compat v10 để chạy trực tiếp trên GitHub Pages không cần build) -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
   <style>
     body {
       font-family: 'Inter', sans-serif;
@@ -52,10 +57,12 @@
           N
         </div>
         <div>
-          <span class="text-xl font-extrabold tracking-tight text-slate-900">Natech</span>
-          <span class="hidden sm:inline-block ml-2 text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">
-            Luyện Thi Trắc Nghiệm
-          </span>
+          <div class="flex items-center gap-2">
+            <span class="text-xl font-extrabold tracking-tight text-slate-900">Natech</span>
+            <span id="cloudSyncBadge" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+              Đang kết nối Cloud...
+            </span>
+          </div>
         </div>
       </button>
 
@@ -125,7 +132,7 @@
       <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
         <div class="text-xs font-semibold uppercase tracking-wider text-slate-400">Số bài đã làm</div>
         <div id="statTotalAttempts" class="mt-1 text-2xl font-extrabold text-slate-900">0</div>
-        <div id="statScopeNote" class="mt-1 text-xs text-slate-500">Lưu theo tài khoản / thiết bị</div>
+        <div id="statScopeNote" class="mt-1 text-xs text-slate-500">Đồng bộ trực tuyến</div>
       </div>
       <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm">
         <div class="text-xs font-semibold uppercase tracking-wider text-slate-400">Điểm trung bình</div>
@@ -299,7 +306,7 @@
             <div class="flex items-center justify-between gap-2 mb-4">
               <div>
                 <h2 class="text-xl font-bold text-slate-900">Quản Lý Đề Thi</h2>
-                <p class="text-xs text-slate-500">Tạo mới, chỉnh sửa hoặc xóa đề thi</p>
+                <p class="text-xs text-slate-500">Tạo mới, chỉnh sửa hoặc xóa đề thi (đồng bộ mọi thiết bị)</p>
               </div>
               <button type="button" onclick="resetEditorForNewQuiz()"
                 class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition">
@@ -310,12 +317,12 @@
             <div id="adminQuizList" class="space-y-3"></div>
           </div>
 
-          <!-- Form cấp tài khoản cho học sinh (chỉ Admin tạo được, luôn là tài khoản thường) -->
+          <!-- Form cấp tài khoản cho học sinh -->
           <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
             <div class="mb-4">
               <h3 class="text-lg font-bold text-slate-900">Cấp Tài Khoản Học Sinh</h3>
               <p class="text-xs text-slate-500 mt-0.5">
-                Chỉ Admin mới có quyền tạo, cấp lại mật khẩu hoặc xóa tài khoản học sinh. Quyền Admin chỉ thuộc duy nhất tài khoản của bạn.
+                Tài khoản và mật khẩu cấp lại sẽ tự động đồng bộ lên máy chủ để học sinh đăng nhập trên mọi thiết bị.
               </p>
             </div>
 
@@ -427,11 +434,11 @@
   <footer class="bg-white border-t border-slate-200 mt-12">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
       <div>© 2026 <strong>Natech</strong> — Nền tảng luyện thi trắc nghiệm chuẩn cấu trúc THPT Quốc Gia.</div>
-      <div>Lưu trữ cục bộ trên trình duyệt • Bảo mật tài khoản quản trị</div>
+      <div>Đồng bộ Cloud Firestore • Bảo mật tài khoản quản trị</div>
     </div>
   </footer>
 
-  <!-- Modal Đăng nhập (Không có đăng ký tự do) -->
+  <!-- Modal Đăng nhập -->
   <div id="authModal" class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 modal-backdrop hidden-modal">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
       <div class="flex items-center justify-between mb-4">
@@ -468,7 +475,7 @@
     </div>
   </div>
 
-  <!-- Modal Đổi mật khẩu (Người dùng đang đăng nhập) -->
+  <!-- Modal Đổi mật khẩu -->
   <div id="changePasswordModal" class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 modal-backdrop hidden-modal">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
       <div class="flex items-center justify-between mb-4">
@@ -574,16 +581,30 @@
 
   <script>
     // =========================================================================
-    // 1. CẤU HÌNH KHÓA LƯU TRỮ & HẰNG SỐ HỆ THỐNG
+    // 1. CẤU HÌNH FIREBASE FIRESTORE (PROJECT: natech-8cd72)
     // =========================================================================
-    const ADMIN_EMAIL = 'tunguyenne292k8@gmail.com';
-    const STORAGE_KEYS = {
-      QUIZZES: 'natech_vn_quizzes_v1',
-      QUIZZES_SEEDED: 'natech_vn_quizzes_seeded_v1',
-      USERS: 'natech_vn_users_v1',
-      SESSION: 'natech_vn_session_v1',
-      HISTORY: 'natech_vn_history_v1'
+    const firebaseConfig = {
+      apiKey: "AIzaSyCgJNumPXAEQ1-oea4xCGkA9S8pK-MHMjk",
+      authDomain: "natech-8cd72.firebaseapp.com",
+      projectId: "natech-8cd72",
+      storageBucket: "natech-8cd72.firebasestorage.app",
+      messagingSenderId: "755255535863",
+      appId: "1:755255535863:web:a8ba5da45e07bdb3cd0bf2",
+      measurementId: "G-ZL22D2T8M6"
     };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const COLLECTIONS = {
+      QUIZZES: 'natech_quizzes',
+      USERS: 'natech_users',
+      HISTORY: 'natech_history',
+      META: 'natech_meta'
+    };
+
+    const ADMIN_EMAIL = 'tunguyenne292k8@gmail.com';
+    const SESSION_STORAGE_KEY = 'natech_vn_session_v2';
 
     const DEFAULT_QUIZZES = [
       {
@@ -661,9 +682,13 @@
     ];
 
     // =========================================================================
-    // 2. TRẠNG THÁI ỨNG DỤNG
+    // 2. BỘ NHỚ ĐỆM ĐỒNG BỘ THỜI GIAN THỰC TỪ FIRESTORE
     // =========================================================================
     let quizzes = [];
+    let usersCache = [];
+    let historyCache = [];
+    let cloudReady = false;
+
     let currentUser = null; // { name, email, isAdmin }
     let activeQuiz = null;
     let userAnswers = { mcq: {}, tf: {} };
@@ -671,11 +696,28 @@
     let remainingSeconds = 0;
     let pendingConfirmCallback = null;
 
+    function updateCloudBadge(state, text) {
+      const badge = document.getElementById('cloudSyncBadge');
+      if (!badge) return;
+      badge.textContent = text;
+      if (state === 'ok') {
+        badge.className = 'text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200';
+      } else if (state === 'err') {
+        badge.className = 'text-[11px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200';
+      } else {
+        badge.className = 'text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200';
+      }
+    }
+
     // =========================================================================
-    // 3. TIỆN ÍCH LƯU TRỮ & BĂM MẬT KHẨU
+    // 3. TIỆN ÍCH CHUẨN HÓA & BĂM MẬT KHẨU
     // =========================================================================
     function normalizeEmail(email) {
       return String(email || '').trim().toLowerCase();
+    }
+
+    function isAdminEmail(email) {
+      return normalizeEmail(email) === ADMIN_EMAIL;
     }
 
     function escapeHtml(str) {
@@ -698,7 +740,7 @@
       clearTimeout(showToast._timer);
       showToast._timer = setTimeout(() => {
         box.classList.add('hidden');
-      }, 3200);
+      }, 3400);
     }
 
     function hashPasswordWithSalt(password, salt) {
@@ -725,77 +767,106 @@
       return Array.from(arr, b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    function saveQuizzesToStorage() {
-      localStorage.setItem(STORAGE_KEYS.QUIZZES, JSON.stringify(quizzes));
-      localStorage.setItem(STORAGE_KEYS.QUIZZES_SEEDED, '1');
-    }
-
-    function loadQuizzesFromStorage() {
-      const seeded = localStorage.getItem(STORAGE_KEYS.QUIZZES_SEEDED);
-      const raw = localStorage.getItem(STORAGE_KEYS.QUIZZES);
-
-      if (seeded === '1' && raw !== null) {
-        try {
-          const parsed = JSON.parse(raw);
-          quizzes = Array.isArray(parsed) ? parsed : [];
-          return;
-        } catch (e) {
-          quizzes = [];
-          return;
-        }
-      }
-
-      quizzes = JSON.parse(JSON.stringify(DEFAULT_QUIZZES));
-      saveQuizzesToStorage();
-    }
-
     function getUsers() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEYS.USERS);
-        const list = raw ? JSON.parse(raw) : [];
-        if (!Array.isArray(list)) return [];
-        return list.map(u => ({
-          ...u,
-          email: normalizeEmail(u.email),
-          isAdmin: isAdminEmail(u.email)
-        }));
-      } catch (e) {
-        return [];
-      }
-    }
-
-    function saveUsers(users) {
-      const normalizedUsers = (Array.isArray(users) ? users : []).map(u => ({
+      return usersCache.map(u => ({
         ...u,
         email: normalizeEmail(u.email),
         isAdmin: isAdminEmail(u.email)
       }));
-      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(normalizedUsers));
     }
 
     function getHistory() {
+      return historyCache;
+    }
+
+    // =========================================================================
+    // 4. ĐỒNG BỘ DỮ LIỆU CLOUD FIRESTORE (ĐỀ THI, TÀI KHOẢN, LỊCH SỬ)
+    // =========================================================================
+    async function initCloudSync() {
       try {
-        const raw = localStorage.getItem(STORAGE_KEYS.HISTORY);
-        const list = raw ? JSON.parse(raw) : [];
-        return Array.isArray(list) ? list : [];
-      } catch (e) {
-        return [];
+        // Kiểm tra xem đã từng khởi tạo đề mẫu trên Cloud chưa (chỉ seed đúng 1 lần duy nhất)
+        const metaRef = db.collection(COLLECTIONS.META).doc('bootstrap');
+        const metaSnap = await metaRef.get();
+        if (!metaSnap.exists) {
+          const batch = db.batch();
+          DEFAULT_QUIZZES.forEach(q => {
+            batch.set(db.collection(COLLECTIONS.QUIZZES).doc(q.id), q);
+          });
+          batch.set(metaRef, { seeded: true, createdAt: new Date().toISOString() });
+          await batch.commit();
+        }
+
+        // Lắng nghe realtime danh sách đề thi
+        db.collection(COLLECTIONS.QUIZZES).onSnapshot(
+          (snap) => {
+            const list = [];
+            snap.forEach(doc => list.push(doc.data()));
+            list.sort((a, b) => String(b.updatedAt || b.id).localeCompare(String(a.updatedAt || a.id)));
+            quizzes = list;
+            cloudReady = true;
+            updateCloudBadge('ok', 'Đã đồng bộ Cloud');
+            renderQuizList();
+            if (!document.getElementById('adminView').classList.contains('hidden')) {
+              renderAdminQuizList();
+            }
+          },
+          (err) => {
+            console.error('Firestore quizzes error:', err);
+            updateCloudBadge('err', 'Lỗi quyền Firestore Rules');
+            showToast('Chưa mở quyền Firestore Rules trên Firebase Console!', true);
+          }
+        );
+
+        // Lắng nghe realtime danh sách tài khoản
+        db.collection(COLLECTIONS.USERS).onSnapshot(
+          (snap) => {
+            const list = [];
+            snap.forEach(doc => list.push(doc.data()));
+            usersCache = list;
+
+            // Xác thực lại phiên đăng nhập hiện tại nếu tài khoản bị xóa
+            if (currentUser) {
+              const stillExists = getUsers().some(u => normalizeEmail(u.email) === currentUser.email);
+              if (!stillExists) {
+                logoutUser();
+                return;
+              }
+            }
+            if (!document.getElementById('adminView').classList.contains('hidden')) {
+              renderStudentAccountsList();
+            }
+          },
+          (err) => {
+            console.error('Firestore users error:', err);
+          }
+        );
+
+        // Lắng nghe realtime lịch sử làm bài
+        db.collection(COLLECTIONS.HISTORY).onSnapshot(
+          (snap) => {
+            const list = [];
+            snap.forEach(doc => list.push(doc.data()));
+            list.sort((a, b) => String(b.timestamp || '').localeCompare(String(a.timestamp || '')));
+            historyCache = list;
+            updateStatsBar();
+            if (!document.getElementById('historyView').classList.contains('hidden')) {
+              renderHistoryTable();
+            }
+          },
+          (err) => {
+            console.error('Firestore history error:', err);
+          }
+        );
+      } catch (err) {
+        console.error('Init Firestore failed:', err);
+        updateCloudBadge('err', 'Mất kết nối Cloud');
+        showToast('Không kết nối được Firebase Firestore. Kiểm tra lại Rules hoặc mạng!', true);
       }
     }
 
-    function appendHistoryRecord(record) {
-      const list = getHistory();
-      list.unshift(record);
-      localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(list));
-    }
-
     // =========================================================================
-    // 4. ĐĂNG NHẬP, ĐỔI MẬT KHẨU & BẢO MẬT QUYỀN ADMIN DUY NHẤT
+    // 5. ĐĂNG NHẬP, ĐỔI MẬT KHẨU & QUYỀN ADMIN DUY NHẤT
     // =========================================================================
-    function isAdminEmail(email) {
-      return normalizeEmail(email) === ADMIN_EMAIL;
-    }
-
     function openAuthModal() {
       document.getElementById('authErrorMsg').classList.add('hidden');
       document.getElementById('authModal').classList.remove('hidden-modal');
@@ -805,11 +876,13 @@
       document.getElementById('authModal').classList.add('hidden-modal');
     }
 
-    function handleAuthSubmit(event) {
+    async function handleAuthSubmit(event) {
       event.preventDefault();
       const email = normalizeEmail(document.getElementById('authEmail').value);
       const password = String(document.getElementById('authPassword').value || '');
       const errMsg = document.getElementById('authErrorMsg');
+      const submitBtn = document.getElementById('authSubmitBtn');
+      errMsg.classList.add('hidden');
 
       const showErr = (msg) => {
         errMsg.textContent = msg;
@@ -821,42 +894,53 @@
         return;
       }
 
-      const users = getUsers();
-      const existingIndex = users.findIndex(u => normalizeEmail(u.email) === email);
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Đang kiểm tra...';
 
-      if (existingIndex === -1) {
-        if (isAdminEmail(email)) {
-          const salt = generateSalt();
-          const passwordHash = hashPasswordWithSalt(password, salt);
-          const adminUser = {
-            name: 'Quản trị viên Natech',
-            email: ADMIN_EMAIL,
-            salt,
-            passwordHash,
-            isAdmin: true,
-            createdAt: new Date().toISOString()
-          };
-          users.push(adminUser);
-          saveUsers(users);
-          setSessionUser(adminUser);
-          closeAuthModal();
-          showToast('Đã khởi tạo và đăng nhập tài khoản Admin sở hữu riêng!');
+      try {
+        // Đọc trực tiếp từ Firestore để luôn lấy mật khẩu mới nhất vừa được Admin cấp
+        const userDocRef = db.collection(COLLECTIONS.USERS).doc(email);
+        const userSnap = await userDocRef.get();
+
+        if (!userSnap.exists) {
+          if (isAdminEmail(email)) {
+            const salt = generateSalt();
+            const passwordHash = hashPasswordWithSalt(password, salt);
+            const adminUser = {
+              name: 'Quản trị viên Natech',
+              email: ADMIN_EMAIL,
+              salt,
+              passwordHash,
+              isAdmin: true,
+              createdAt: new Date().toISOString()
+            };
+            await userDocRef.set(adminUser);
+            setSessionUser(adminUser);
+            closeAuthModal();
+            showToast('Đã khởi tạo và đăng nhập tài khoản Admin sở hữu riêng!');
+            return;
+          }
+          showErr('Tài khoản chưa tồn tại hoặc đã bị xóa. Vui lòng liên hệ Admin để được cấp tài khoản.');
           return;
         }
-        showErr('Tài khoản chưa tồn tại hoặc đã bị xóa. Vui lòng liên hệ Admin để được cấp tài khoản.');
-        return;
-      }
 
-      const user = users[existingIndex];
-      const candidateHash = hashPasswordWithSalt(password, user.salt);
-      if (!user.salt || candidateHash !== user.passwordHash) {
-        showErr('Mật khẩu không chính xác. Vui lòng thử lại.');
-        return;
-      }
+        const user = userSnap.data();
+        const candidateHash = hashPasswordWithSalt(password, user.salt);
+        if (!user.salt || candidateHash !== user.passwordHash) {
+          showErr('Mật khẩu không chính xác. Vui lòng thử lại.');
+          return;
+        }
 
-      setSessionUser(user);
-      closeAuthModal();
-      showToast(`Xin chào, ${user.name}!`);
+        setSessionUser(user);
+        closeAuthModal();
+        showToast(`Xin chào, ${user.name}!`);
+      } catch (err) {
+        console.error(err);
+        showErr('Lỗi kết nối máy chủ Firebase. Hãy kiểm tra tab Rules trong Firestore Database đã bấm Publish chưa.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Đăng nhập';
+      }
     }
 
     function openChangePasswordModal() {
@@ -873,7 +957,7 @@
       document.getElementById('changePasswordModal').classList.add('hidden-modal');
     }
 
-    function handleChangePasswordSubmit(event) {
+    async function handleChangePasswordSubmit(event) {
       event.preventDefault();
       if (!currentUser) return;
 
@@ -897,31 +981,35 @@
         return;
       }
 
-      const users = getUsers();
-      const idx = users.findIndex(u => normalizeEmail(u.email) === normalizeEmail(currentUser.email));
-      if (idx === -1) {
-        showErr('Không tìm thấy thông tin tài khoản.');
-        return;
-      }
+      try {
+        const cleanEmail = normalizeEmail(currentUser.email);
+        const docRef = db.collection(COLLECTIONS.USERS).doc(cleanEmail);
+        const snap = await docRef.get();
+        if (!snap.exists) {
+          showErr('Không tìm thấy thông tin tài khoản.');
+          return;
+        }
 
-      const user = users[idx];
-      if (hashPasswordWithSalt(currentPw, user.salt) !== user.passwordHash) {
-        showErr('Mật khẩu hiện tại không chính xác.');
-        return;
-      }
+        const user = snap.data();
+        if (hashPasswordWithSalt(currentPw, user.salt) !== user.passwordHash) {
+          showErr('Mật khẩu hiện tại không chính xác.');
+          return;
+        }
 
-      const newSalt = generateSalt();
-      users[idx] = {
-        ...user,
-        email: normalizeEmail(user.email),
-        salt: newSalt,
-        passwordHash: hashPasswordWithSalt(newPw, newSalt),
-        isAdmin: isAdminEmail(user.email),
-        updatedAt: new Date().toISOString()
-      };
-      saveUsers(users);
-      closeChangePasswordModal();
-      showToast('Đã đổi mật khẩu thành công!');
+        const newSalt = generateSalt();
+        await docRef.update({
+          salt: newSalt,
+          passwordHash: hashPasswordWithSalt(newPw, newSalt),
+          isAdmin: isAdminEmail(cleanEmail),
+          updatedAt: new Date().toISOString()
+        });
+
+        closeChangePasswordModal();
+        showToast('Đã đổi mật khẩu và đồng bộ lên Cloud thành công!');
+      } catch (err) {
+        console.error(err);
+        showErr('Không thể cập nhật mật khẩu lên máy chủ. Vui lòng thử lại.');
+      }
     }
 
     function setSessionUser(user) {
@@ -931,7 +1019,7 @@
         email: normalized,
         isAdmin: isAdminEmail(normalized)
       };
-      localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(currentUser));
+      localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(currentUser));
       updateAuthUI();
       updateStatsBar();
       renderQuizList();
@@ -939,7 +1027,7 @@
 
     function logoutUser() {
       currentUser = null;
-      localStorage.removeItem(STORAGE_KEYS.SESSION);
+      localStorage.removeItem(SESSION_STORAGE_KEY);
       updateAuthUI();
       updateStatsBar();
       goHome();
@@ -982,7 +1070,7 @@
     }
 
     // =========================================================================
-    // 5. ĐIỀU HƯỚNG MÀN HÌNH & THỐNG KÊ
+    // 6. ĐIỀU HƯỚNG MÀN HÌNH & THỐNG KÊ
     // =========================================================================
     function hideAllViews() {
       ['homeView', 'quizView', 'resultView', 'historyView', 'adminView'].forEach(id => {
@@ -1032,7 +1120,7 @@
     }
 
     // =========================================================================
-    // 6. DANH SÁCH ĐỀ THI & LÀM BÀI CHUẨN THPT QUỐC GIA
+    // 7. DANH SÁCH ĐỀ THI & LÀM BÀI CHUẨN THPT QUỐC GIA
     // =========================================================================
     function renderQuizList() {
       const grid = document.getElementById('quizGrid');
@@ -1044,7 +1132,7 @@
       if (!filtered.length) {
         grid.innerHTML = `
           <div class="col-span-full bg-white rounded-2xl border border-dashed border-slate-300 p-10 text-center">
-            <p class="text-slate-600 font-medium">Chưa có đề thi nào trong danh mục này.</p>
+            <p class="text-slate-600 font-medium">${cloudReady ? 'Chưa có đề thi nào trong danh mục này.' : 'Đang tải danh sách đề từ Cloud...'}</p>
             ${currentUser && currentUser.isAdmin
               ? `<button type="button" onclick="openAdminView()" class="mt-3 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold">Tạo đề thi mới</button>`
               : ''}
@@ -1260,7 +1348,7 @@
     function confirmSubmitQuiz() {
       openConfirmModal(
         'Xác nhận nộp bài',
-        'Bạn có chắc chắn muốn nộp bài và xem kết quả chấm điểm không?',
+        'Bạn có chắc chắn muốn nộp bài và lưu kết quả lên hệ thống không?',
         submitQuiz
       );
     }
@@ -1274,7 +1362,7 @@
     }
 
     // =========================================================================
-    // 7. CHẤM ĐIỂM CHUẨN QUY CHẾ THPT QUỐC GIA & LƯU LỊCH SỬ
+    // 8. CHẤM ĐIỂM CHUẨN QUY CHẾ THPT QUỐC GIA & LƯU LỊCH SỬ LÊN CLOUD
     // =========================================================================
     function scoreTfQuestion(statements, userMap) {
       let matched = 0;
@@ -1283,7 +1371,6 @@
           matched += 1;
         }
       });
-      // Quy chế THPT QG: 1 ý đúng = 0.1đ, 2 ý = 0.25đ, 3 ý = 0.5đ, 4 ý = 1.0đ
       const table = { 0: 0, 1: 0.1, 2: 0.25, 3: 0.5, 4: 1.0 };
       return {
         matched,
@@ -1292,7 +1379,7 @@
       };
     }
 
-    function submitQuiz() {
+    async function submitQuiz() {
       if (quizTimerInterval) {
         clearInterval(quizTimerInterval);
         quizTimerInterval = null;
@@ -1323,8 +1410,9 @@
       const rawScore = mcqCorrect * 1.0 + tfPointsSum;
       const score10 = maxRawScore > 0 ? Number(((rawScore / maxRawScore) * 10).toFixed(2)) : 0;
 
+      const attemptId = `att-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
       const record = {
-        id: `att-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        id: attemptId,
         timestamp: new Date().toISOString(),
         userName: currentUser ? currentUser.name : 'Khách (Chưa đăng nhập)',
         userEmail: currentUser ? currentUser.email : 'guest@local',
@@ -1340,9 +1428,15 @@
         quizSnapshot: JSON.parse(JSON.stringify(activeQuiz))
       };
 
-      appendHistoryRecord(record);
-      updateStatsBar();
       renderResultView(record);
+
+      try {
+        await db.collection(COLLECTIONS.HISTORY).doc(attemptId).set(record);
+        showToast('Đã nộp bài và lưu kết quả lên máy chủ!');
+      } catch (err) {
+        console.error('Save history failed:', err);
+        showToast('Đã chấm điểm nhưng chưa lưu được lên Cloud. Kiểm tra kết nối mạng!', true);
+      }
     }
 
     function renderResultView(record) {
@@ -1443,7 +1537,7 @@
     }
 
     // =========================================================================
-    // 8. LỊCH SỬ LÀM BÀI (CẤM HỌC SINH XÓA, ADMIN XEM TOÀN BỘ)
+    // 9. LỊCH SỬ LÀM BÀI (CẤM HỌC SINH XÓA, ADMIN XEM TOÀN BỘ)
     // =========================================================================
     function openHistoryView() {
       hideAllViews();
@@ -1542,7 +1636,7 @@
     }
 
     // =========================================================================
-    // 9. QUẢN LÝ ĐỀ THI & CẤP / CẤP LẠI / XÓA TÀI KHOẢN HỌC SINH (CHỈ ADMIN)
+    // 10. QUẢN LÝ ĐỀ THI & TÀI KHOẢN HỌC SINH TRÊN CLOUD (CHỈ ADMIN)
     // =========================================================================
     let editingQuizId = null;
 
@@ -1561,7 +1655,7 @@
       }
     }
 
-    function handleCreateStudentAccount(event) {
+    async function handleCreateStudentAccount(event) {
       event.preventDefault();
       if (!currentUser || !currentUser.isAdmin) {
         showToast('Chỉ tài khoản Admin mới có quyền tạo tài khoản học sinh.', true);
@@ -1589,28 +1683,32 @@
         return;
       }
 
-      const users = getUsers();
-      if (users.some(u => normalizeEmail(u.email) === email)) {
-        showErr('Gmail này đã có tài khoản trong hệ thống.');
-        return;
+      try {
+        const docRef = db.collection(COLLECTIONS.USERS).doc(email);
+        const existingSnap = await docRef.get();
+        if (existingSnap.exists) {
+          showErr('Gmail này đã có tài khoản trong hệ thống.');
+          return;
+        }
+
+        const salt = generateSalt();
+        const passwordHash = hashPasswordWithSalt(password, salt);
+        await docRef.set({
+          name,
+          email,
+          salt,
+          passwordHash,
+          isAdmin: false,
+          createdBy: ADMIN_EMAIL,
+          createdAt: new Date().toISOString()
+        });
+
+        document.getElementById('createStudentForm').reset();
+        showToast(`Đã tạo tài khoản học sinh và đồng bộ lên Cloud cho ${email}`);
+      } catch (err) {
+        console.error(err);
+        showErr('Lỗi lưu lên Firestore. Kiểm tra tab Rules trên Firebase Console!');
       }
-
-      const salt = generateSalt();
-      const passwordHash = hashPasswordWithSalt(password, salt);
-      users.push({
-        name,
-        email,
-        salt,
-        passwordHash,
-        isAdmin: false,
-        createdBy: ADMIN_EMAIL,
-        createdAt: new Date().toISOString()
-      });
-      saveUsers(users);
-
-      document.getElementById('createStudentForm').reset();
-      renderStudentAccountsList();
-      showToast(`Đã tạo tài khoản học sinh cho ${email}`);
     }
 
     function openResetStudentPasswordModal(studentEmail) {
@@ -1632,7 +1730,7 @@
       document.getElementById('resetStudentPasswordModal').classList.add('hidden-modal');
     }
 
-    function handleResetStudentPasswordSubmit(event) {
+    async function handleResetStudentPasswordSubmit(event) {
       event.preventDefault();
       if (!currentUser || !currentUser.isAdmin) return;
 
@@ -1653,34 +1751,33 @@
         return;
       }
 
-      const users = getUsers();
-      const idx = users.findIndex(u => normalizeEmail(u.email) === targetEmail);
-      if (idx === -1) {
-        errEl.textContent = 'Tài khoản học sinh không tồn tại.';
+      try {
+        const docRef = db.collection(COLLECTIONS.USERS).doc(targetEmail);
+        const snap = await docRef.get();
+        if (!snap.exists) {
+          errEl.textContent = 'Tài khoản học sinh không tồn tại.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+
+        const newSalt = generateSalt();
+        const newHash = hashPasswordWithSalt(newPw, newSalt);
+        await docRef.update({
+          email: targetEmail,
+          salt: newSalt,
+          passwordHash: newHash,
+          isAdmin: false,
+          resetBy: ADMIN_EMAIL,
+          resetAt: new Date().toISOString()
+        });
+
+        closeResetStudentPasswordModal();
+        showToast(`Đã cấp lại mật khẩu mới cho ${targetEmail} (học sinh đăng nhập được ngay trên mọi thiết bị)!`);
+      } catch (err) {
+        console.error(err);
+        errEl.textContent = 'Lỗi cập nhật lên Firestore. Hãy kiểm tra lại kết nối!';
         errEl.classList.remove('hidden');
-        return;
       }
-
-      const newSalt = generateSalt();
-      const newHash = hashPasswordWithSalt(newPw, newSalt);
-      users[idx] = {
-        ...users[idx],
-        email: targetEmail,
-        salt: newSalt,
-        passwordHash: newHash,
-        isAdmin: false,
-        resetBy: ADMIN_EMAIL,
-        resetAt: new Date().toISOString()
-      };
-      saveUsers(users);
-
-      if (currentUser && normalizeEmail(currentUser.email) === targetEmail) {
-        localStorage.removeItem(STORAGE_KEYS.SESSION);
-      }
-
-      closeResetStudentPasswordModal();
-      renderStudentAccountsList();
-      showToast(`Đã cấp lại mật khẩu mới cho ${targetEmail}`);
     }
 
     function confirmDeleteStudentAccount(studentEmail) {
@@ -1693,16 +1790,15 @@
 
       openConfirmModal(
         'Xóa tài khoản học sinh',
-        `Bạn có chắc chắn muốn xóa tài khoản học sinh "${user.name}" (${normalized})? Học sinh sẽ không thể đăng nhập nữa.`,
-        () => {
-          const users = getUsers().filter(u => normalizeEmail(u.email) !== normalized);
-          saveUsers(users);
-          if (currentUser && normalizeEmail(currentUser.email) === normalized) {
-            logoutUser();
-            return;
+        `Bạn có chắc chắn muốn xóa tài khoản học sinh "${user.name}" (${normalized})? Học sinh sẽ không thể đăng nhập nữa trên mọi thiết bị.`,
+        async () => {
+          try {
+            await db.collection(COLLECTIONS.USERS).doc(normalized).delete();
+            showToast(`Đã xóa tài khoản ${normalized}`);
+          } catch (err) {
+            console.error(err);
+            showToast('Lỗi khi xóa tài khoản trên Cloud.', true);
           }
-          renderStudentAccountsList();
-          showToast(`Đã xóa tài khoản ${normalized}`);
         }
       );
     }
@@ -1868,7 +1964,7 @@
       wrap.appendChild(card);
     }
 
-    function saveCurrentQuizFromEditor() {
+    async function saveCurrentQuizFromEditor() {
       if (!currentUser || !currentUser.isAdmin) {
         showToast('Chỉ tài khoản Admin mới có thể lưu đề.', true);
         return;
@@ -1927,29 +2023,26 @@
         return;
       }
 
+      const quizId = editingQuizId || `quiz-${Date.now()}`;
       const quizObj = {
-        id: editingQuizId || `quiz-${Date.now()}`,
+        id: quizId,
         title,
         subject,
         description: description || `Đề luyện tập môn ${subject}`,
         durationMinutes,
         mcqQuestions,
-        tfQuestions
+        tfQuestions,
+        updatedAt: new Date().toISOString()
       };
 
-      if (editingQuizId) {
-        const idx = quizzes.findIndex(q => q.id === editingQuizId);
-        if (idx !== -1) quizzes[idx] = quizObj;
-        else quizzes.unshift(quizObj);
-      } else {
-        quizzes.unshift(quizObj);
+      try {
+        await db.collection(COLLECTIONS.QUIZZES).doc(quizId).set(quizObj);
+        editingQuizId = quizId;
+        showToast('Đã lưu đề thi lên Cloud (mọi thiết bị đã cập nhật)!');
+      } catch (err) {
+        console.error(err);
+        showToast('Lỗi lưu đề thi lên Firestore. Kiểm tra quyền Rules!', true);
       }
-
-      saveQuizzesToStorage();
-      editingQuizId = quizObj.id;
-      renderAdminQuizList();
-      renderQuizList();
-      showToast('Đã lưu đề thi vào bộ nhớ trình duyệt!');
     }
 
     function confirmDeleteQuiz(quizId) {
@@ -1957,22 +2050,24 @@
       if (!target) return;
       openConfirmModal(
         'Xóa đề thi',
-        `Bạn có chắc chắn muốn xóa đề "${target.title}"? Danh sách đề sẽ được cập nhật ngay và giữ nguyên sau khi tải lại trang.`,
-        () => {
-          quizzes = quizzes.filter(q => q.id !== quizId);
-          if (editingQuizId === quizId) {
-            resetEditorForNewQuiz();
+        `Bạn có chắc chắn muốn xóa đề "${target.title}"? Đề thi sẽ bị xóa khỏi tất cả các thiết bị.`,
+        async () => {
+          try {
+            await db.collection(COLLECTIONS.QUIZZES).doc(quizId).delete();
+            if (editingQuizId === quizId) {
+              resetEditorForNewQuiz();
+            }
+            showToast('Đã xóa đề thi khỏi hệ thống.');
+          } catch (err) {
+            console.error(err);
+            showToast('Lỗi khi xóa đề thi trên Cloud.', true);
           }
-          saveQuizzesToStorage();
-          renderAdminQuizList();
-          renderQuizList();
-          showToast('Đã xóa đề thi.');
         }
       );
     }
 
     // =========================================================================
-    // 10. HỘP THOẠI XÁC NHẬN & KHỞI TẠO
+    // 11. HỘP THOẠI XÁC NHẬN & KHỞI TẠO ỨNG DỤNG
     // =========================================================================
     function openConfirmModal(title, desc, onOk) {
       document.getElementById('confirmModalTitle').textContent = title;
@@ -1993,23 +2088,17 @@
     });
 
     function initApp() {
-      loadQuizzesFromStorage();
       try {
-        const savedSession = localStorage.getItem(STORAGE_KEYS.SESSION);
+        const savedSession = localStorage.getItem(SESSION_STORAGE_KEY);
         if (savedSession) {
           const parsed = JSON.parse(savedSession);
           if (parsed && parsed.email) {
             const normalized = normalizeEmail(parsed.email);
-            const exists = getUsers().some(u => normalizeEmail(u.email) === normalized);
-            if (exists) {
-              currentUser = {
-                name: parsed.name || normalized,
-                email: normalized,
-                isAdmin: isAdminEmail(normalized)
-              };
-            } else {
-              localStorage.removeItem(STORAGE_KEYS.SESSION);
-            }
+            currentUser = {
+              name: parsed.name || normalized,
+              email: normalized,
+              isAdmin: isAdminEmail(normalized)
+            };
           }
         }
       } catch (e) {
@@ -2019,6 +2108,7 @@
       updateAuthUI();
       updateStatsBar();
       renderQuizList();
+      initCloudSync();
     }
 
     initApp();
