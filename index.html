@@ -1986,35 +1986,55 @@
       (q.tfQuestions || []).forEach(item => addEditorTfQuestion(item));
     }
 
-    function addEditorMcqQuestion(data = null) {
-      const wrap = document.getElementById('editorMcqList');
-      const card = document.createElement('div');
-      card.className = 'p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-3 editor-mcq-item';
-      const opts = data?.options || ['', '', '', ''];
-      const correct = Number(data?.correctIndex ?? 0);
+function addEditorMcqQuestion(data = null) {
+  const wrap = document.getElementById('editorMcqList');
+  const card = document.createElement('div');
+  card.className = 'p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-3 editor-mcq-item';
+  const opts = data?.options || ['', '', '', ''];
+  const correct = Number(data?.correctIndex ?? 0);
+  const groupName = `mcq_correct_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 
-      card.innerHTML = `
-        <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-indigo-700">Câu hỏi trắc nghiệm (A, B, C, D)</span>
-          <button type="button" onclick="this.closest('.editor-mcq-item').remove()" class="text-xs text-rose-600 hover:underline">Xóa câu</button>
+  card.innerHTML = `
+    <div class="flex items-center justify-between gap-2">
+      <span class="text-xs font-bold text-indigo-700">Câu hỏi trắc nghiệm (A, B, C, D)</span>
+      <div class="flex items-center gap-2">
+        <label class="text-xs font-semibold text-slate-700">Đáp án đúng:</label>
+        <select class="px-2.5 py-1 rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-900 text-xs font-bold mcq-correct-select">
+          <option value="0" ${correct === 0 ? 'selected' : ''}>A</option>
+          <option value="1" ${correct === 1 ? 'selected' : ''}>B</option>
+          <option value="2" ${correct === 2 ? 'selected' : ''}>C</option>
+          <option value="3" ${correct === 3 ? 'selected' : ''}>D</option>
+        </select>
+        <button type="button" onclick="this.closest('.editor-mcq-item').remove()" class="text-xs text-rose-600 hover:underline ml-1">Xóa câu</button>
+      </div>
+    </div>
+    <input type="text" placeholder="Nội dung câu hỏi..." value="${escapeHtml(data?.prompt || '')}"
+      class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm mcq-prompt" />
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+      ${['A', 'B', 'C', 'D'].map((lbl, idx) => `
+        <div class="flex items-center gap-2">
+          <input type="radio" name="${groupName}" value="${idx}" ${idx === correct ? 'checked' : ''}
+            onchange="this.closest('.editor-mcq-item').querySelector('.mcq-correct-select').value = '${idx}'"
+            class="accent-emerald-600 mcq-correct" title="Chọn ${lbl} làm đáp án đúng" />
+          <span class="text-xs font-bold text-slate-600">${lbl}.</span>
+          <input type="text" placeholder="Phương án ${lbl}" value="${escapeHtml(opts[idx] || '')}"
+            class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs mcq-opt" />
         </div>
-        <input type="text" placeholder="Nội dung câu hỏi..." value="${escapeHtml(data?.prompt || '')}"
-          class="w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm mcq-prompt" />
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          ${['A', 'B', 'C', 'D'].map((lbl, idx) => `
-            <div class="flex items-center gap-2">
-              <input type="radio" name="mcq_correct_${Date.now()}_${Math.random()}" ${idx === correct ? 'checked' : ''}
-                class="accent-emerald-600 mcq-correct" title="Đáp án đúng" />
-              <input type="text" placeholder="Phương án ${lbl}" value="${escapeHtml(opts[idx] || '')}"
-                class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs mcq-opt" />
-            </div>
-          `).join('')}
-        </div>
-        <input type="text" placeholder="Giải thích chi tiết (tùy chọn)..." value="${escapeHtml(data?.explanation || '')}"
-          class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs mcq-expl" />
-      `;
-      wrap.appendChild(card);
-    }
+      `).join('')}
+    </div>
+    <input type="text" placeholder="Giải thích chi tiết (tùy chọn)..." value="${escapeHtml(data?.explanation || '')}"
+      class="w-full px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs mcq-expl" />
+  `;
+
+  const selectEl = card.querySelector('.mcq-correct-select');
+  selectEl.addEventListener('change', () => {
+    const chosen = Number(selectEl.value);
+    const radios = card.querySelectorAll('.mcq-correct');
+    if (radios[chosen]) radios[chosen].checked = true;
+  });
+
+  wrap.appendChild(card);
+}
 
     function addEditorTfQuestion(data = null) {
       const wrap = document.getElementById('editorTfList');
@@ -2077,12 +2097,13 @@
       document.querySelectorAll('#editorMcqList .editor-mcq-item').forEach((card, idx) => {
         const prompt = card.querySelector('.mcq-prompt').value.trim();
         const optInputs = Array.from(card.querySelectorAll('.mcq-opt'));
+        const correctSelect = card.querySelector('.mcq-correct-select');
         const correctInputs = Array.from(card.querySelectorAll('.mcq-correct'));
         const explanation = card.querySelector('.mcq-expl').value.trim();
         if (!prompt) return;
         const options = optInputs.map(inp => inp.value.trim() || 'Lựa chọn');
-        let correctIndex = correctInputs.findIndex(r => r.checked);
-        if (correctIndex < 0) correctIndex = 0;
+        let correctIndex = correctSelect ? Number(correctSelect.value) : correctInputs.findIndex(r => r.checked);
+        if (Number.isNaN(correctIndex) || correctIndex < 0 || correctIndex > 3) correctIndex = 0;
         mcqQuestions.push({
           id: `mcq-${Date.now()}-${idx}`,
           prompt,
