@@ -14,9 +14,8 @@
       display: none !important;
     }
 
-    /* Hiển thị 1 ảnh lớn trên 1 hàng riêng cho từng câu & đề Word/PDF */
-    .single-question-image,
-    .word-single-page-image {
+    /* Hiển thị 1 ảnh lớn trên 1 hàng riêng cho từng câu */
+    .single-question-image {
       display: block;
       width: 100%;
       max-width: 820px;
@@ -27,12 +26,6 @@
       border-radius: 0.75rem;
       cursor: zoom-in;
       background: #ffffff;
-    }
-
-    .word-doc-viewer {
-      white-space: pre-wrap;
-      font-size: 0.9rem;
-      line-height: 1.65;
     }
 
     .word-q-answered {
@@ -305,12 +298,6 @@
             <div id="progressBar" class="h-full bg-indigo-700 transition-all" style="width: 0%"></div>
           </div>
         </div>
-
-        <div id="mobileWordTabBar" class="hidden grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-slate-100 sm:hidden">
-          <button id="tabWordBothBtn" type="button" onclick="setMobileWordViewMode('both')" class="py-1.5 rounded-lg text-xs font-bold bg-indigo-700 text-white">Cả hai</button>
-          <button id="tabWordDocBtn" type="button" onclick="setMobileWordViewMode('doc')" class="py-1.5 rounded-lg text-xs font-semibold text-slate-700">Xem đề</button>
-          <button id="tabWordSheetBtn" type="button" onclick="setMobileWordViewMode('sheet')" class="py-1.5 rounded-lg text-xs font-semibold text-slate-700">Phiếu trả lời</button>
-        </div>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
@@ -400,7 +387,7 @@
       <div class="bg-white rounded-2xl border border-slate-200 p-5 flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">Khu vực quản trị</h2>
-          <p class="text-xs text-slate-600 mt-0.5">Soạn từng câu (1 ảnh/câu &lt; 1MB) hoặc tải đề Word/PDF (xem 1 ảnh lớn đầu tiên).</p>
+          <p class="text-xs text-slate-600 mt-0.5">Soạn từng câu (1 ảnh/câu &lt; 1MB) hoặc tải Word/PDF để AI tự bóc câu, tự chọn ảnh và soát lại.</p>
         </div>
         <div class="flex items-center gap-2">
           <button type="button" onclick="resetEditorForNewQuiz()"
@@ -457,7 +444,7 @@
               </button>
               <button id="modeWordBtn" type="button" onclick="setEditorMode('word')"
                 class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 transition">
-                File Word / PDF
+                AI bóc đề Word / PDF
               </button>
             </div>
           </div>
@@ -558,65 +545,74 @@
             </div>
           </div>
 
-          <!-- CHẾ ĐỘ WORD / PDF -->
-          <div id="wordEditorSection" class="hidden space-y-4">
+          <!-- CHẾ ĐỘ AI BÓC ĐỀ WORD / PDF (KHÔNG CÓ Ô HIỂN THỊ VĂN BẢN ĐỀ WORD) -->
+          <div id="wordEditorSection" class="hidden space-y-5">
             <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
               <div class="flex items-center justify-between gap-2 flex-wrap">
-                <span class="text-xs font-bold text-slate-800">Tải file Word (.docx) hoặc PDF (.pdf)</span>
+                <span class="text-xs font-extrabold text-slate-900">Tải file Word (.docx) hoặc PDF (.pdf) — AI tự bóc câu &amp; chọn ảnh</span>
                 <span id="wordFileNameBadge" class="text-xs font-semibold text-indigo-800"></span>
               </div>
+
               <input id="editorWordFileInput" type="file" accept=".docx,.pdf,application/pdf"
                 onchange="handleDocOrPdfFileUpload(event)"
                 class="block w-full text-xs text-slate-700 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-100 file:text-indigo-900" />
-              <div id="wordFileStatus" class="text-xs text-slate-600">Chưa chọn file Word / PDF</div>
 
-              <input id="editorWordExternalUrl" type="url" placeholder="Link file gốc tùy chọn (https://...)"
-                class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white" />
-
-              <div>
-                <div class="flex items-center justify-between mb-1">
-                  <label class="text-xs font-semibold text-slate-700">Hoặc dán link URL ảnh (mỗi dòng 1 link)</label>
-                  <button type="button" onclick="clearExtractedWordImages()" class="text-xs text-rose-700 hover:underline">Xóa ảnh</button>
-                </div>
-                <textarea id="editorWordImageUrls" rows="2" oninput="renderEditorWordImagePreview()"
-                  placeholder="https://..."
-                  class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white"></textarea>
+              <div class="flex flex-col sm:flex-row gap-2">
+                <input id="editorGeminiApiKey" type="password"
+                  placeholder="Gemini API Key tùy chọn (để trống = AI bóc tách tự động cục bộ)"
+                  class="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white" />
+                <button id="reAnalyzeDocBtn" type="button" onclick="reRunAiAnalysisOnLastFile()"
+                  class="px-3.5 py-2 rounded-xl bg-indigo-100 hover:bg-indigo-200 text-indigo-950 text-xs font-bold shrink-0">
+                  Chạy lại AI bóc đề
+                </button>
               </div>
 
-              <div id="editorWordImagesPreviewWrap" class="hidden space-y-2">
-                <div id="editorWordImagesCountLabel" class="text-xs font-bold text-indigo-900"></div>
-                <div id="editorWordImagesPreviewGrid"></div>
-              </div>
+              <div id="wordFileStatus" class="text-xs font-medium text-slate-600">Chưa chọn file Word / PDF</div>
+            </div>
 
-              <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">Nội dung văn bản trích xuất (tùy chọn)</label>
-                <textarea id="editorWordDocText" rows="4"
-                  class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white"></textarea>
+            <!-- KHU VỰC SOÁT & SỬA CÂU HỎI SAU KHI AI BÓC TÁCH -->
+            <div class="p-4 rounded-xl bg-indigo-50/60 border border-indigo-200 space-y-2">
+              <div class="flex items-center justify-between gap-2 flex-wrap">
+                <span id="aiReviewSummaryBadge" class="text-xs font-extrabold text-indigo-950">
+                  Khu vực soát &amp; sửa câu hỏi (sau khi tải file, bạn có thể sửa câu, đổi ảnh, sửa đáp án)
+                </span>
+                <span class="text-[11px] text-slate-600">Mỗi câu tối đa 1 ảnh (&lt; 1MB)</span>
               </div>
             </div>
 
-            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
-              <div class="text-xs font-extrabold text-slate-800">Cấu hình phiếu đáp án cho đề Word/PDF</div>
-              <div class="grid grid-cols-3 gap-2">
-                <div>
-                  <label class="block text-[11px] font-semibold text-slate-600 mb-1">Số câu P.I</label>
-                  <input id="wordMcqCountInput" type="number" min="0" max="100" value="10" onchange="syncWordAnswerSheet()"
-                    class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
+            <div class="space-y-5">
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <h4 class="text-sm font-extrabold text-indigo-900">Phần I: Trắc nghiệm (A, B, C, D) — Soát &amp; sửa</h4>
+                  <button type="button" onclick="addEditorMcqQuestion()"
+                    class="px-3 py-1.5 rounded-lg bg-indigo-100 hover:bg-indigo-200 text-indigo-900 text-xs font-bold">
+                    + Thêm câu P.I
+                  </button>
                 </div>
-                <div>
-                  <label class="block text-[11px] font-semibold text-slate-600 mb-1">Số câu P.II</label>
-                  <input id="wordTfCountInput" type="number" min="0" max="40" value="2" onchange="syncWordAnswerSheet()"
-                    class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
-                </div>
-                <div>
-                  <label class="block text-[11px] font-semibold text-slate-600 mb-1">Số câu P.III</label>
-                  <input id="wordShortCountInput" type="number" min="0" max="40" value="2" onchange="syncWordAnswerSheet()"
-                    class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs bg-white" />
-                </div>
+                <div id="aiMcqList" class="space-y-3"></div>
               </div>
-              <div id="wordMcqSheetContainer" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
-              <div id="wordTfSheetContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
-              <div id="wordShortSheetContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-2"></div>
+
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <h4 class="text-sm font-extrabold text-emerald-900">Phần II: Đúng / Sai (a, b, c, d) — Soát &amp; sửa</h4>
+                  <button type="button" onclick="addEditorTfQuestion()"
+                    class="px-3 py-1.5 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-900 text-xs font-bold">
+                    + Thêm câu P.II
+                  </button>
+                </div>
+                <div id="aiTfList" class="space-y-3"></div>
+              </div>
+
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <h4 class="text-sm font-extrabold text-amber-900">Phần III: Câu trả lời ngắn — Soát &amp; sửa</h4>
+                  <button type="button" onclick="addEditorShortQuestion()"
+                    class="px-3 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-bold">
+                    + Thêm câu P.III
+                  </button>
+                </div>
+                <div id="aiShortList" class="space-y-3"></div>
+              </div>
             </div>
           </div>
 
@@ -872,18 +868,15 @@
     let quizTimerInterval = null;
     let remainingSeconds = 0;
     let pendingConfirmCallback = null;
-    let mobileWordViewMode = 'both';
-    let extractedWordImages = [];
 
-    // Chỉ số ảnh đang hiển thị cho đề Word/PDF (mặc định = 0: chỉ nhìn 1 ảnh đầu tiên từ đầu)
-    let currentWordImageIndex = 0;
-    let currentEditorWordImageIndex = 0;
+    // Lưu dữ liệu file Word/PDF vừa tải để chạy lại AI khi cần
+    let lastUploadedDocPayload = null;
 
     // =========================================================================
-    // KIỂM TRA & NÉN ẢNH (< 1MB) CHO TỪNG CÂU & TÀI LIỆU WORD/PDF
+    // KIỂM TRA & NÉN ẢNH (< 1MB) CHO TỪNG CÂU
     // =========================================================================
     const MAX_SINGLE_IMAGE_BYTES = 1024 * 1024; // 1MB
-    const SAFE_STORED_IMAGE_BYTES = 750 * 1024; // ~750KB
+    const SAFE_STORED_IMAGE_BYTES = 700 * 1024; // ~700KB
 
     function estimateDataUrlBytes(dataUrl) {
       if (!dataUrl || typeof dataUrl !== 'string') return 0;
@@ -908,18 +901,13 @@
         return trimmed;
       }
 
-      const initialBytes = estimateDataUrlBytes(trimmed);
-      if (initialBytes > MAX_SINGLE_IMAGE_BYTES) {
-        showToast(`Ảnh nặng ${formatBytesLabel(initialBytes)} (> 1MB), đang tự nén...`);
-      }
-
       return new Promise((resolve) => {
         const img = new Image();
         img.onload = () => {
           let width = img.naturalWidth || img.width;
           let height = img.naturalHeight || img.height;
 
-          const maxInitSide = 1400;
+          const maxInitSide = 1280;
           if (width > maxInitSide || height > maxInitSide) {
             const ratio = Math.min(maxInitSide / width, maxInitSide / height);
             width = Math.max(1, Math.round(width * ratio));
@@ -928,7 +916,7 @@
 
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
-          let quality = 0.8;
+          let quality = 0.78;
           let resultUrl = '';
 
           for (let attempt = 0; attempt < 8; attempt++) {
@@ -956,41 +944,14 @@
 
           const finalBytes = estimateDataUrlBytes(resultUrl);
           if (finalBytes > MAX_SINGLE_IMAGE_BYTES) {
-            showToast('Ảnh vượt quá 1MB sau khi nén. Vui lòng chọn ảnh nhẹ hơn!', true);
             resolve('');
             return;
           }
           resolve(resultUrl);
         };
-        img.onerror = () => {
-          showToast('Không thể đọc file ảnh đã chọn.', true);
-          resolve('');
-        };
+        img.onerror = () => resolve('');
         img.src = trimmed;
       });
-    }
-
-    async function fitImagesUnderFirestoreLimit(rawImages, maxTotalChars = 750000) {
-      const list = parseImageLines(rawImages);
-      const result = [];
-      let totalChars = 0;
-      let truncated = false;
-
-      for (const item of list) {
-        const compressed = await compressSingleImageToLimit(item, SAFE_STORED_IMAGE_BYTES);
-        if (!compressed) continue;
-        if (totalChars + compressed.length > maxTotalChars) {
-          truncated = true;
-          break;
-        }
-        result.push(compressed);
-        totalChars += compressed.length;
-      }
-
-      if (truncated) {
-        showToast('Đã tự động giới hạn số trang ảnh để không vượt 1MB của Firestore.', true);
-      }
-      return result;
     }
 
     function getSingleQuestionImage(item) {
@@ -1071,27 +1032,6 @@
       if (!panel) return;
       panel.classList.toggle('hidden');
       panel.classList.toggle('flex');
-    }
-
-    function setMobileWordViewMode(mode) {
-      mobileWordViewMode = mode;
-      const docCard = document.getElementById('wordDocCard');
-      const sheetWrap = document.getElementById('wordAnswerSheetWrap');
-      const bBoth = document.getElementById('tabWordBothBtn');
-      const bDoc = document.getElementById('tabWordDocBtn');
-      const bSheet = document.getElementById('tabWordSheetBtn');
-
-      [bBoth, bDoc, bSheet].forEach(btn => {
-        if (!btn) return;
-        btn.className = 'py-1.5 rounded-lg text-xs font-semibold text-slate-700';
-      });
-      const activeBtn = mode === 'doc' ? bDoc : mode === 'sheet' ? bSheet : bBoth;
-      if (activeBtn) {
-        activeBtn.className = 'py-1.5 rounded-lg text-xs font-bold bg-indigo-700 text-white';
-      }
-
-      if (docCard) docCard.classList.toggle('hidden', mode === 'sheet');
-      if (sheetWrap) sheetWrap.classList.toggle('hidden', mode === 'doc');
     }
 
     function updateCloudBadge(state, text) {
@@ -1235,7 +1175,7 @@
       clearTimeout(showToast._timer);
       showToast._timer = setTimeout(() => {
         box.classList.add('hidden');
-      }, 3400);
+      }, 3600);
     }
 
     function hashPasswordWithSalt(password, salt) {
@@ -1690,44 +1630,6 @@
     // =========================================================================
     // 7. DANH SÁCH ĐỀ THI, TRANG PHỤ THÔNG TIN ĐỀ & LÀM BÀI
     // =========================================================================
-    function isWordQuiz(quiz) {
-      return quiz?.quizFormat === 'word';
-    }
-
-    function getQuizDocImages(quiz) {
-      const direct = parseImageLines(quiz?.wordImages);
-      const ext = parseImageLines(quiz?.wordExternalUrl).filter(u => /\.(png|jpe?g|gif|webp|bmp|svg)(\?.*)?$/i.test(u));
-      return [...direct, ...ext];
-    }
-
-    function changeWordImageIndex(delta) {
-      if (!activeQuiz) return;
-      const docImages = getQuizDocImages(activeQuiz);
-      if (!docImages.length) return;
-      currentWordImageIndex = (currentWordImageIndex + delta + docImages.length) % docImages.length;
-      renderQuizQuestions();
-      refreshAllAnswerHighlights();
-    }
-
-    function jumpWordImageIndex(idx) {
-      if (!activeQuiz) return;
-      const docImages = getQuizDocImages(activeQuiz);
-      if (!docImages.length) return;
-      const target = Number(idx);
-      if (Number.isNaN(target)) return;
-      currentWordImageIndex = Math.max(0, Math.min(docImages.length - 1, target));
-      renderQuizQuestions();
-      refreshAllAnswerHighlights();
-    }
-
-    function changeEditorWordImageIndex(delta) {
-      const manualUrls = parseImageLines(document.getElementById('editorWordImageUrls')?.value || '');
-      const combined = [...extractedWordImages, ...manualUrls];
-      if (!combined.length) return;
-      currentEditorWordImageIndex = (currentEditorWordImageIndex + delta + combined.length) % combined.length;
-      renderEditorWordImagePreview();
-    }
-
     function renderQuizList() {
       const grid = document.getElementById('quizGrid');
       const searchQuery = (document.getElementById('quizSearchInput')?.value || '').trim().toLowerCase();
@@ -1781,8 +1683,6 @@
         const isOpen = (quiz.examStatus || 'open') === 'open';
         const orderedTags = sortTagsByPriority(quiz.tags);
         const isHot = orderedTags.includes('Hot');
-        const wordMode = isWordQuiz(quiz);
-        const docImgCount = getQuizDocImages(quiz).length;
 
         return `
           <div onclick="openQuizDetailView('${escapeHtml(quiz.id)}')"
@@ -1792,7 +1692,6 @@
                 <div class="flex items-center gap-1.5 flex-wrap">
                   ${orderedTags.map(t => renderTagBadge(t)).join('')}
                   ${renderQuizTypeBadge(quiz.quizType)}
-                  ${wordMode ? `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-900 border border-indigo-300">Word/PDF${docImgCount ? ` • ${docImgCount} ảnh` : ''}</span>` : ''}
                 </div>
                 <span class="text-xs font-semibold text-blue-900">⏱ ${Number(quiz.durationMinutes || 15)} phút</span>
               </div>
@@ -1821,7 +1720,7 @@
                 <span>Tổng: <strong>${mcqCount + tfCount + shortCount}</strong> câu</span>
               </div>
               <div class="w-full py-2.5 px-3 rounded-xl bg-indigo-700 text-white text-center text-sm font-semibold">
-                ${wordMode ? 'Đọc đề & xem ảnh làm bài' : 'Xem thông tin & làm bài'}
+                Xem thông tin &amp; làm bài
               </div>
             </div>
           </div>
@@ -1850,13 +1749,9 @@
       const isAdmin = Boolean(currentUser && currentUser.isAdmin);
       const orderedTags = sortTagsByPriority(found.tags);
       const shareUrl = getQuizShareUrl(found.id);
-      const wordMode = isWordQuiz(found);
-      const docImgCount = getQuizDocImages(found).length;
 
-      document.getElementById('detailQuizTopTags').innerHTML = [
-        ...(orderedTags.length ? orderedTags.map(t => renderTagBadge(t)) : []),
-        ...(wordMode ? [`<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-900 border border-indigo-300">Word/PDF${found.wordFileName ? `: ${escapeHtml(found.wordFileName)}` : ''}${docImgCount ? ` (${docImgCount} ảnh)` : ''}</span>`] : [])
-      ].join('') || '<span class="text-xs text-slate-500">Không có nhãn</span>';
+      document.getElementById('detailQuizTopTags').innerHTML =
+        orderedTags.length ? orderedTags.map(t => renderTagBadge(t)).join('') : '<span class="text-xs text-slate-500">Không có nhãn</span>';
 
       const typePlaceholder = document.getElementById('detailQuizTypeBadge');
       const tempSpan = document.createElement('span');
@@ -1917,7 +1812,7 @@
         startBtn.className = 'w-full sm:w-auto px-6 py-3 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-sm font-semibold transition';
         startBtn.onclick = () => openAuthModal();
       } else {
-        startBtn.textContent = wordMode ? 'Mở đề & xem ảnh làm bài' : 'Bắt đầu làm bài';
+        startBtn.textContent = 'Bắt đầu làm bài';
         startBtn.disabled = false;
         startBtn.className = 'w-full sm:w-auto px-6 py-3 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white text-sm font-semibold transition';
         startBtn.onclick = () => handleStartQuizClick(found.id);
@@ -2033,17 +1928,9 @@
       activeQuiz.shortQuestions = activeQuiz.shortQuestions || [];
       userAnswers = { mcq: {}, tf: {}, short: {} };
       remainingSeconds = Math.max(1, Number(activeQuiz.durationMinutes || 15)) * 60;
-      mobileWordViewMode = 'both';
-      currentWordImageIndex = 0;
 
       hideAllViews();
       document.getElementById('quizView').classList.remove('hidden');
-
-      const wordTabBar = document.getElementById('mobileWordTabBar');
-      if (wordTabBar) {
-        wordTabBar.classList.toggle('hidden', !isWordQuiz(activeQuiz));
-        setMobileWordViewMode('both');
-      }
 
       const orderedTags = sortTagsByPriority(activeQuiz.tags);
       document.getElementById('activeQuizTopTags').innerHTML = orderedTags.map(t => renderTagBadge(t)).join('');
@@ -2102,22 +1989,12 @@
         if (card) {
           card.classList.toggle('word-q-answered', selectedIdx !== undefined);
         }
-
-        if (isWordQuiz(activeQuiz)) {
-          for (let optIdx = 0; optIdx < 4; optIdx++) {
-            const pill = document.getElementById(`word-mcq-pill-${q.id}-${optIdx}`);
-            if (pill) {
-              pill.classList.toggle('opt-pill-selected', selectedIdx === optIdx);
-            }
+        (q.options || []).forEach((_, optIdx) => {
+          const lbl = document.getElementById(`std-mcq-lbl-${q.id}-${optIdx}`);
+          if (lbl) {
+            lbl.classList.toggle('std-mcq-selected', selectedIdx === optIdx);
           }
-        } else {
-          (q.options || []).forEach((_, optIdx) => {
-            const lbl = document.getElementById(`std-mcq-lbl-${q.id}-${optIdx}`);
-            if (lbl) {
-              lbl.classList.toggle('std-mcq-selected', selectedIdx === optIdx);
-            }
-          });
-        }
+        });
         qIndex += 1;
       });
 
@@ -2157,171 +2034,6 @@
       const mcqList = activeQuiz.mcqQuestions || [];
       const tfList = activeQuiz.tfQuestions || [];
       const shortList = activeQuiz.shortQuestions || [];
-
-      if (isWordQuiz(activeQuiz)) {
-        let html = '';
-        let navHtml = '';
-        let qIndex = 1;
-        const docImages = getQuizDocImages(activeQuiz);
-        const safeIdx = docImages.length
-          ? Math.max(0, Math.min(docImages.length - 1, currentWordImageIndex))
-          : 0;
-        currentWordImageIndex = safeIdx;
-        const currentDocImg = docImages[safeIdx] || '';
-
-        html += `
-          <div id="wordDocCard" class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-3">
-            <div class="flex items-center justify-between gap-2 flex-wrap pb-3 border-b border-slate-200">
-              <div class="min-w-0">
-                <span class="text-[11px] font-extrabold uppercase tracking-wider text-blue-900">Tài liệu đề (Word / PDF &amp; Hình ảnh)</span>
-                <h3 class="text-sm sm:text-base font-bold text-slate-900 mt-0.5 truncate">
-                  ${escapeHtml(activeQuiz.wordFileName || activeQuiz.title)}
-                </h3>
-              </div>
-              ${activeQuiz.wordExternalUrl ? `
-                <a href="${escapeHtml(activeQuiz.wordExternalUrl)}" target="_blank" rel="noopener noreferrer"
-                  class="px-3 py-1.5 rounded-xl bg-blue-100 hover:bg-blue-200 text-blue-950 text-xs font-semibold border border-blue-200 transition">
-                  Mở file gốc ↗
-                </a>
-              ` : ''}
-            </div>
-
-            ${docImages.length ? `
-              <div class="space-y-3">
-                <div class="flex items-center justify-between gap-2 flex-wrap px-3 py-2 rounded-xl bg-indigo-50 border border-indigo-200">
-                  <span class="text-xs font-bold text-indigo-900">
-                    Đang xem 1 ảnh lớn: Ảnh ${safeIdx + 1} / ${docImages.length}
-                  </span>
-                  <div class="flex items-center gap-1.5 flex-wrap">
-                    <button type="button" onclick="changeWordImageIndex(-1)"
-                      class="px-3 py-1.5 rounded-lg bg-white hover:bg-indigo-100 text-indigo-900 border border-indigo-300 text-xs font-bold transition">
-                      ◀ Ảnh trước
-                    </button>
-                    <select onchange="jumpWordImageIndex(this.value)"
-                      aria-label="Chọn ảnh trang đề"
-                      class="px-2.5 py-1.5 rounded-lg bg-white border border-indigo-300 text-xs font-bold text-slate-800">
-                      ${docImages.map((_, i) => `<option value="${i}" ${i === safeIdx ? 'selected' : ''}>Trang/Ảnh ${i + 1}</option>`).join('')}
-                    </select>
-                    <button type="button" onclick="changeWordImageIndex(1)"
-                      class="px-3 py-1.5 rounded-lg bg-white hover:bg-indigo-100 text-indigo-900 border border-indigo-300 text-xs font-bold transition">
-                      Ảnh tiếp ▶
-                    </button>
-                  </div>
-                </div>
-
-                <figure class="w-full p-3 sm:p-4 rounded-xl bg-slate-50 border border-slate-200">
-                  <img src="${escapeHtml(currentDocImg)}"
-                    alt="${escapeHtml(`${activeQuiz.wordFileName || activeQuiz.title} - Ảnh ${safeIdx + 1}/${docImages.length}`)}"
-                    onclick="openImageLightbox(this.src, '${escapeHtml(`${activeQuiz.wordFileName || activeQuiz.title} - Ảnh ${safeIdx + 1}/${docImages.length}`)}')"
-                    class="word-single-page-image" />
-                  <figcaption class="mt-2 text-center text-xs font-medium text-slate-600">
-                    Ảnh ${safeIdx + 1}/${docImages.length} — bấm vào ảnh để phóng to toàn màn hình
-                  </figcaption>
-                </figure>
-              </div>
-            ` : ''}
-
-            ${activeQuiz.wordDocText ? `
-              <div class="p-3.5 sm:p-4 rounded-xl bg-slate-50 border border-slate-200 max-h-[50vh] overflow-y-auto word-doc-viewer text-slate-900">${escapeHtml(activeQuiz.wordDocText)}</div>
-            ` : (!docImages.length ? `
-              <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600">(Chưa có nội dung văn bản hoặc hình ảnh trong đề)</div>
-            ` : '')}
-          </div>
-        `;
-
-        html += `<div id="wordAnswerSheetWrap" class="space-y-3">`;
-
-        if (mcqList.length) {
-          html += `<div class="text-xs font-extrabold uppercase tracking-wider text-indigo-800 pt-1">Phiếu trả lời Phần I: Chọn đáp án A, B, C, D</div>`;
-          html += `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">`;
-          mcqList.forEach((q) => {
-            const domId = `q-anchor-${qIndex}`;
-            navHtml += `<a href="#${domId}" id="nav-btn-${domId}" class="w-8 h-8 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-700 flex items-center justify-center hover:border-indigo-400">C${qIndex}</a>`;
-            const letters = ['A', 'B', 'C', 'D'];
-            html += `
-              <div id="${domId}" class="bg-white rounded-2xl border border-slate-200 p-3.5 flex items-center justify-between gap-2 transition">
-                <span class="text-sm font-extrabold text-slate-900">Câu ${qIndex}</span>
-                <div class="flex items-center gap-1.5">
-                  ${letters.map((lbl, optIdx) => `
-                    <label id="word-mcq-pill-${q.id}-${optIdx}"
-                      class="w-9 h-9 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-800 flex items-center justify-center cursor-pointer transition select-none">
-                      <input type="radio" name="mcq_${q.id}" value="${optIdx}"
-                        onchange="selectMcqOption('${escapeHtml(q.id)}', ${optIdx})"
-                        class="sr-only" />
-                      ${lbl}
-                    </label>
-                  `).join('')}
-                </div>
-              </div>
-            `;
-            qIndex += 1;
-          });
-          html += `</div>`;
-        }
-
-        if (tfList.length) {
-          html += `<div class="text-xs font-extrabold uppercase tracking-wider text-emerald-800 pt-2">Phiếu trả lời Phần II: Chọn Đúng / Sai (a, b, c, d)</div>`;
-          html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">`;
-          tfList.forEach((q) => {
-            const domId = `q-anchor-${qIndex}`;
-            navHtml += `<a href="#${domId}" id="nav-btn-${domId}" class="w-8 h-8 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-700 flex items-center justify-center hover:border-emerald-500">C${qIndex}</a>`;
-            const subLabels = ['a', 'b', 'c', 'd'];
-            html += `
-              <div id="${domId}" class="bg-white rounded-2xl border border-slate-200 p-3.5 space-y-2 transition">
-                <div class="text-xs font-extrabold text-emerald-800 uppercase">Câu ${qIndex} • Phần II</div>
-                ${subLabels.map((lbl, sIdx) => `
-                  <div class="flex items-center justify-between gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200">
-                    <span class="text-xs font-bold text-slate-800">Ý ${lbl})</span>
-                    <div class="flex items-center gap-1.5">
-                      <label id="word-tf-pill-${q.id}-${sIdx}-true"
-                        class="px-2.5 py-1 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-800 cursor-pointer transition select-none">
-                        <input type="radio" name="tf_${q.id}_${sIdx}" value="true" class="sr-only"
-                          onchange="selectTfOption('${escapeHtml(q.id)}', ${sIdx}, true)" />
-                        Đúng
-                      </label>
-                      <label id="word-tf-pill-${q.id}-${sIdx}-false"
-                        class="px-2.5 py-1 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-800 cursor-pointer transition select-none">
-                        <input type="radio" name="tf_${q.id}_${sIdx}" value="false" class="sr-only"
-                          onchange="selectTfOption('${escapeHtml(q.id)}', ${sIdx}, false)" />
-                        Sai
-                      </label>
-                    </div>
-                  </div>
-                `).join('')}
-              </div>
-            `;
-            qIndex += 1;
-          });
-          html += `</div>`;
-        }
-
-        if (shortList.length) {
-          html += `<div class="text-xs font-extrabold uppercase tracking-wider text-amber-800 pt-2">Phiếu trả lời Phần III: Câu trả lời ngắn (Điền đáp án)</div>`;
-          html += `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">`;
-          shortList.forEach((q) => {
-            const domId = `q-anchor-${qIndex}`;
-            navHtml += `<a href="#${domId}" id="nav-btn-${domId}" class="w-8 h-8 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-700 flex items-center justify-center hover:border-amber-500">C${qIndex}</a>`;
-            html += `
-              <div id="${domId}" class="bg-white rounded-2xl border border-slate-200 p-3.5 space-y-2 transition">
-                <label for="short-ans-input-${escapeHtml(q.id)}" class="block text-xs font-extrabold text-amber-900 uppercase">
-                  Câu ${qIndex} • Trả lời ngắn
-                </label>
-                <input id="short-ans-input-${escapeHtml(q.id)}" type="text"
-                  placeholder="Nhập đáp án..."
-                  oninput="selectShortOption('${escapeHtml(q.id)}', this.value)"
-                  class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              </div>
-            `;
-            qIndex += 1;
-          });
-          html += `</div>`;
-        }
-
-        html += `</div>`;
-        container.innerHTML = html;
-        navGrid.innerHTML = navHtml;
-        return;
-      }
 
       let html = '';
       let navHtml = '';
@@ -2671,76 +2383,6 @@
       let out = '';
       let idx = 1;
 
-      if (isWordQuiz(snapshot)) {
-        const docImages = getQuizDocImages(snapshot);
-        if (docImages.length) {
-          out += `
-            <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-2">
-              <div class="text-xs font-bold uppercase text-blue-900">Ảnh tài liệu đề thi (1 ảnh lớn / hàng)</div>
-              ${docImages.map((src, i) => renderSingleImageHtml(src, `${snapshot.title || 'Đề thi'} — Ảnh ${i + 1}/${docImages.length}`)).join('')}
-            </div>
-          `;
-        }
-        const mcqList = snapshot.mcqQuestions || [];
-        const tfList = snapshot.tfQuestions || [];
-        const shortList = snapshot.shortQuestions || [];
-        if (mcqList.length) {
-          out += `<div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-3">
-            <div class="text-xs font-bold uppercase text-indigo-800">Đối chiếu đáp án Phần I (A, B, C, D)</div>
-            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2 text-xs">`;
-          mcqList.forEach((q, mIdx) => {
-            const chosen = answers?.mcq?.[q.id];
-            const ok = chosen === Number(q.correctIndex);
-            out += `
-              <div class="p-2.5 rounded-xl border ${ok ? 'border-emerald-300 bg-emerald-100/70' : 'border-rose-300 bg-rose-100/70'}">
-                <div class="font-bold text-slate-900">Câu ${mIdx + 1}</div>
-                <div>Chọn: <strong>${chosen !== undefined ? letters[chosen] : '-'}</strong> | Đúng: <strong>${letters[q.correctIndex]}</strong></div>
-              </div>
-            `;
-          });
-          out += `</div></div>`;
-        }
-        if (tfList.length) {
-          out += `<div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-3">
-            <div class="text-xs font-bold uppercase text-emerald-800">Đối chiếu đáp án Phần II (a, b, c, d)</div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">`;
-          tfList.forEach((q, tIdx) => {
-            const res = scoreTfQuestion(q.statements, answers?.tf?.[q.id]);
-            out += `
-              <div class="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-1.5">
-                <div class="font-bold text-slate-900">Câu II.${tIdx + 1} (${res.points} điểm — ${res.matched}/4 ý)</div>
-                ${(q.statements || []).map((st, sIdx) => {
-                  const chosen = answers?.tf?.[q.id]?.[sIdx];
-                  const ok = chosen === st.isTrue;
-                  return `<div class="${ok ? 'text-emerald-900' : 'text-rose-800'}">
-                    <strong>${subLabels[sIdx]})</strong> Chọn: ${chosen === true ? 'Đúng' : chosen === false ? 'Sai' : '-'} | Đáp án: <strong>${st.isTrue ? 'Đúng' : 'Sai'}</strong>
-                  </div>`;
-                }).join('')}
-              </div>
-            `;
-          });
-          out += `</div></div>`;
-        }
-        if (shortList.length) {
-          out += `<div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-3">
-            <div class="text-xs font-bold uppercase text-amber-800">Đối chiếu đáp án Phần III (Trả lời ngắn)</div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs">`;
-          shortList.forEach((q, sIdx) => {
-            const chosen = String(answers?.short?.[q.id] ?? '').trim();
-            const ok = isShortAnswerCorrect(chosen, q.answer);
-            out += `
-              <div class="p-3 rounded-xl border ${ok ? 'border-emerald-300 bg-emerald-100/70' : 'border-rose-300 bg-rose-100/70'} space-y-1">
-                <div class="font-bold text-slate-900">Câu III.${sIdx + 1} (${ok ? 'Đúng' : 'Sai'})</div>
-                <div>Bạn điền: <strong>${chosen ? escapeHtml(chosen) : '(Chưa điền)'}</strong></div>
-                <div>Đáp án đúng: <strong>${escapeHtml(q.answer)}</strong></div>
-              </div>
-            `;
-          });
-          out += `</div></div>`;
-        }
-        return out || '<p class="text-sm text-slate-600">Đã lưu kết quả bài làm.</p>';
-      }
-
       (snapshot.mcqQuestions || []).forEach(q => {
         const chosen = answers?.mcq?.[q.id];
         const isCorrect = chosen === Number(q.correctIndex);
@@ -2961,11 +2603,26 @@
     }
 
     // =========================================================================
-    // 10. QUẢN LÝ ĐỀ THI, UP WORD (.docx) / PDF (.pdf) + 1 ẢNH / CÂU (< 1MB)
+    // 10. QUẢN LÝ ĐỀ THI, AI BÓC ĐỀ WORD/PDF + SOÁT & SỬA TRỰC TIẾP
     // =========================================================================
     let editingQuizId = null;
     let currentEditorMode = 'standard';
     let currentWordFileName = '';
+
+    function getActiveQuestionLists() {
+      if (currentEditorMode === 'word') {
+        return {
+          mcq: document.getElementById('aiMcqList'),
+          tf: document.getElementById('aiTfList'),
+          short: document.getElementById('aiShortList')
+        };
+      }
+      return {
+        mcq: document.getElementById('editorMcqList'),
+        tf: document.getElementById('editorTfList'),
+        short: document.getElementById('editorShortList')
+      };
+    }
 
     function setEditorMode(mode) {
       currentEditorMode = mode === 'word' ? 'word' : 'standard';
@@ -2979,14 +2636,6 @@
         stdBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 transition';
         stdSec.classList.add('hidden');
         wordSec.classList.remove('hidden');
-        if (
-          !document.getElementById('wordMcqSheetContainer').children.length &&
-          !document.getElementById('wordTfSheetContainer').children.length &&
-          !document.getElementById('wordShortSheetContainer').children.length
-        ) {
-          syncWordAnswerSheet();
-        }
-        renderEditorWordImagePreview();
       } else {
         stdBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-700 text-white transition';
         wordBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 transition';
@@ -2995,51 +2644,250 @@
       }
     }
 
-    function renderEditorWordImagePreview() {
-      const manualUrls = parseImageLines(document.getElementById('editorWordImageUrls')?.value || '');
-      const combined = [...extractedWordImages, ...manualUrls];
-      const wrap = document.getElementById('editorWordImagesPreviewWrap');
-      const grid = document.getElementById('editorWordImagesPreviewGrid');
-      const countLbl = document.getElementById('editorWordImagesCountLabel');
-      if (!wrap || !grid || !countLbl) return;
+    // Bộ bóc tách câu hỏi & chọn ảnh tự động từ file Word / PDF
+    function parseQuestionsFromRawBlocks(blocks, pageImages = [], embeddedImages = []) {
+      const mcqQuestions = [];
+      const tfQuestions = [];
+      const shortQuestions = [];
 
-      if (!combined.length) {
-        wrap.classList.add('hidden');
-        grid.innerHTML = '';
-        currentEditorWordImageIndex = 0;
-        return;
+      const cleanBlocks = (blocks || [])
+        .map(b => ({
+          type: b.type || 'text',
+          text: String(b.text || '').trim(),
+          image: String(b.image || '').trim(),
+          pageIdx: Number(b.pageIdx ?? 0)
+        }))
+        .filter(b => b.text || b.image);
+
+      if (!cleanBlocks.length) {
+        return { mcqQuestions, tfQuestions, shortQuestions };
       }
 
-      currentEditorWordImageIndex = Math.max(0, Math.min(combined.length - 1, currentEditorWordImageIndex));
-      const idx = currentEditorWordImageIndex;
-      const src = combined[idx];
-      const safeSrc = escapeHtml(src);
-      const safeCap = escapeHtml(`Xem trước ảnh ${idx + 1}/${combined.length}`);
+      // Nhóm các block thành từng cụm câu hỏi bắt đầu bằng "Câu 1", "Câu 2"...
+      const groups = [];
+      let currentGroup = null;
+      let floatingImages = [];
 
-      wrap.classList.remove('hidden');
-      countLbl.innerHTML = `
-        <span>Ảnh ${idx + 1} / ${combined.length} (hiển thị 1 ảnh lớn đầu tiên)</span>
-        <span class="inline-flex items-center gap-1 ml-2">
-          <button type="button" onclick="changeEditorWordImageIndex(-1)" class="px-2 py-0.5 rounded bg-white border border-slate-300 text-slate-800 font-bold">◀</button>
-          <button type="button" onclick="changeEditorWordImageIndex(1)" class="px-2 py-0.5 rounded bg-white border border-slate-300 text-slate-800 font-bold">▶</button>
-        </span>
-      `;
-      grid.innerHTML = `
-        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center">
-          <img src="${safeSrc}" alt="${safeCap}"
-            onclick="openImageLightbox(this.src, '${safeCap}')"
-            class="word-single-page-image" />
-          <span class="mt-2 text-xs font-medium text-slate-600">Ảnh ${idx + 1}/${combined.length} — bấm để xem lớn</span>
-        </div>
-      `;
+      const qStartRegex = /^(?:câu|question)\s*\d+\s*[:.)]/i;
+
+      cleanBlocks.forEach((blk) => {
+        if (qStartRegex.test(blk.text)) {
+          if (currentGroup) groups.push(currentGroup);
+          currentGroup = {
+            lines: [blk.text],
+            images: [...floatingImages, ...(blk.image ? [blk.image] : [])],
+            pageIdx: blk.pageIdx
+          };
+          floatingImages = [];
+        } else if (currentGroup) {
+          if (blk.text) currentGroup.lines.push(blk.text);
+          if (blk.image) currentGroup.images.push(blk.image);
+        } else {
+          if (blk.image) floatingImages.push(blk.image);
+        }
+      });
+      if (currentGroup) groups.push(currentGroup);
+
+      // Nếu file không đánh số "Câu 1...", gộp thành 1 cụm để bạn soát sửa
+      if (!groups.length) {
+        const allText = cleanBlocks.map(b => b.text).filter(Boolean).join('\n');
+        const allImgs = cleanBlocks.map(b => b.image).filter(Boolean);
+        groups.push({
+          lines: allText ? [allText] : ['Câu 1'],
+          images: allImgs,
+          pageIdx: 0
+        });
+      }
+
+      const pickImageForQuestion = (grp, qIdx) => {
+        if (grp.images && grp.images.length) {
+          return grp.images[0];
+        }
+        if (embeddedImages && embeddedImages.length && embeddedImages[qIdx]) {
+          return embeddedImages[qIdx];
+        }
+        if (pageImages && pageImages.length) {
+          const idx = Math.max(0, Math.min(pageImages.length - 1, grp.pageIdx || 0));
+          return pageImages[idx];
+        }
+        return '';
+      };
+
+      groups.forEach((grp, idx) => {
+        const fullText = grp.lines.join('\n');
+        const chosenImg = pickImageForQuestion(grp, idx);
+
+        // Kiểm tra có ý a), b), c), d) kiểu Đúng/Sai không
+        const hasSubABCD = /(?:^|\n)\s*[a-d]\s*[\).]/i.test(fullText);
+        const hasOptABCD = /(?:^|\n)\s*A\s*[\).]/i.test(fullText) && /(?:^|\n)\s*B\s*[\).]/i.test(fullText);
+
+        if (hasSubABCD && !hasOptABCD) {
+          const parts = fullText.split(/(?:^|\n)\s*([a-d])\s*[\).]/i);
+          const prompt = String(parts[0] || `Câu ${idx + 1}`).replace(/^(?:câu|question)\s*\d+\s*[:.)]\s*/i, '').trim() || `Câu ${idx + 1}`;
+          const statements = [];
+          for (let i = 1; i < parts.length; i += 2) {
+            const stText = String(parts[i + 1] || '').trim();
+            if (stText && statements.length < 4) {
+              statements.push({ text: stText, isTrue: false });
+            }
+          }
+          while (statements.length < 4) {
+            statements.push({ text: '', isTrue: false });
+          }
+          tfQuestions.push({
+            id: `ai-tf-${Date.now()}-${idx}`,
+            prompt,
+            image: chosenImg,
+            images: chosenImg ? [chosenImg] : [],
+            statements,
+            explanation: ''
+          });
+          return;
+        }
+
+        if (hasOptABCD) {
+          const firstAIdx = fullText.search(/(?:^|\n)\s*A\s*[\).]/);
+          const promptPart = firstAIdx > 0 ? fullText.slice(0, firstAIdx) : fullText;
+          const prompt = promptPart.replace(/^(?:câu|question)\s*\d+\s*[:.)]\s*/i, '').trim() || `Câu ${idx + 1}`;
+          const afterA = firstAIdx >= 0 ? fullText.slice(firstAIdx) : '';
+          const optMatches = afterA.split(/(?:^|\n)\s*[A-D]\s*[\).]/).slice(1).map(s => s.trim());
+          const options = [
+            optMatches[0] || '',
+            optMatches[1] || '',
+            optMatches[2] || '',
+            optMatches[3] || ''
+          ];
+          mcqQuestions.push({
+            id: `ai-mcq-${Date.now()}-${idx}`,
+            prompt,
+            image: chosenImg,
+            images: chosenImg ? [chosenImg] : [],
+            options,
+            correctIndex: 0,
+            explanation: ''
+          });
+          return;
+        }
+
+        // Mặc định đưa vào Phần III trả lời ngắn (hoặc dễ dàng chỉnh sửa lại)
+        shortQuestions.push({
+          id: `ai-sa-${Date.now()}-${idx}`,
+          prompt: fullText.replace(/^(?:câu|question)\s*\d+\s*[:.)]\s*/i, '').trim() || `Câu ${idx + 1}`,
+          image: chosenImg,
+          images: chosenImg ? [chosenImg] : [],
+          answer: '',
+          explanation: ''
+        });
+      });
+
+      return { mcqQuestions, tfQuestions, shortQuestions };
     }
 
-    function clearExtractedWordImages() {
-      extractedWordImages = [];
-      currentEditorWordImageIndex = 0;
-      document.getElementById('editorWordImageUrls').value = '';
-      renderEditorWordImagePreview();
-      showToast('Đã xóa danh sách ảnh đính kèm.');
+    async function callGeminiParseQuestions(apiKey, rawText, pageImages) {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+      const promptText = `Bạn là trợ lý bóc tách đề thi trắc nghiệm Việt Nam (THPT Quốc Gia).
+Hãy phân tích nội dung đề sau và trả về DUY NHẤT một JSON hợp lệ (không markdown fence) theo cấu trúc:
+{
+  "mcqQuestions": [{"prompt": "...", "options": ["A", "B", "C", "D"], "correctIndex": 0, "explanation": ""}],
+  "tfQuestions": [{"prompt": "...", "statements": [{"text": "ý a", "isTrue": true}, {"text": "ý b", "isTrue": false}, {"text": "ý c", "isTrue": true}, {"text": "ý d", "isTrue": false}], "explanation": ""}],
+  "shortQuestions": [{"prompt": "...", "answer": "", "explanation": ""}]
+}
+Nội dung đề:
+${String(rawText || '').slice(0, 24000)}`;
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: promptText }] }]
+        })
+      });
+      if (!res.ok) {
+        throw new Error(`Gemini HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      const rawReply = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const jsonMatch = rawReply.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('Không đọc được JSON từ Gemini');
+      const parsed = JSON.parse(jsonMatch[0]);
+
+      const attachImages = (arr, offsetIdx) => (Array.isArray(arr) ? arr : []).map((item, i) => {
+        const img = pageImages[i + offsetIdx] || '';
+        return {
+          ...item,
+          image: img,
+          images: img ? [img] : []
+        };
+      });
+
+      const mcq = attachImages(parsed.mcqQuestions, 0);
+      const tf = attachImages(parsed.tfQuestions, mcq.length);
+      const short = attachImages(parsed.shortQuestions, mcq.length + tf.length);
+      return { mcqQuestions: mcq, tfQuestions: tf, shortQuestions: short };
+    }
+
+    function renderAiParsedQuestionsToEditor(parsed) {
+      const mcqWrap = document.getElementById('aiMcqList');
+      const tfWrap = document.getElementById('aiTfList');
+      const shortWrap = document.getElementById('aiShortList');
+      const badge = document.getElementById('aiReviewSummaryBadge');
+
+      mcqWrap.innerHTML = '';
+      tfWrap.innerHTML = '';
+      shortWrap.innerHTML = '';
+
+      (parsed.mcqQuestions || []).forEach(q => addEditorMcqQuestion(q));
+      (parsed.tfQuestions || []).forEach(q => addEditorTfQuestion(q));
+      (parsed.shortQuestions || []).forEach(q => addEditorShortQuestion(q));
+
+      const total = (parsed.mcqQuestions || []).length + (parsed.tfQuestions || []).length + (parsed.shortQuestions || []).length;
+      if (badge) {
+        badge.textContent = `AI đã bóc tách ${total} câu (P.I: ${(parsed.mcqQuestions || []).length}, P.II: ${(parsed.tfQuestions || []).length}, P.III: ${(parsed.shortQuestions || []).length}) — Bạn có thể sửa câu, đổi ảnh hoặc đáp án ngay bên dưới.`;
+      }
+    }
+
+    async function reRunAiAnalysisOnLastFile() {
+      if (!lastUploadedDocPayload) {
+        showToast('Hãy chọn file Word (.docx) hoặc PDF (.pdf) trước.', true);
+        return;
+      }
+      await runAiAnalysisOnPayload(lastUploadedDocPayload);
+    }
+
+    async function runAiAnalysisOnPayload(payload) {
+      const statusEl = document.getElementById('wordFileStatus');
+      const apiKey = String(document.getElementById('editorGeminiApiKey')?.value || '').trim();
+      statusEl.textContent = apiKey
+        ? 'Đang gửi file cho Gemini AI bóc câu hỏi & chọn ảnh...'
+        : 'AI đang tự động phân tích câu hỏi & gắn ảnh minh họa...';
+
+      try {
+        let parsed = null;
+        if (apiKey) {
+          try {
+            parsed = await callGeminiParseQuestions(apiKey, payload.rawText, payload.pageImages || []);
+          } catch (gemErr) {
+            console.warn('Gemini fallback to local parser:', gemErr);
+            showToast('Gemini chưa phản hồi, tự động chuyển sang bộ bóc tách cục bộ.', true);
+          }
+        }
+        if (!parsed) {
+          parsed = parseQuestionsFromRawBlocks(
+            payload.blocks || [],
+            payload.pageImages || [],
+            payload.embeddedImages || []
+          );
+        }
+
+        renderAiParsedQuestionsToEditor(parsed);
+        const total = (parsed.mcqQuestions || []).length + (parsed.tfQuestions || []).length + (parsed.shortQuestions || []).length;
+        statusEl.textContent = `Đã bóc tách ${total} câu & tự chọn ảnh. Hãy soát và sửa lại nếu cần.`;
+        showToast(`AI đã bóc tách xong ${total} câu hỏi!`);
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Lỗi khi bóc tách file. Bạn có thể bấm "+ Thêm câu" để tự nhập.';
+        showToast('Có lỗi khi AI phân tích file.', true);
+      }
     }
 
     async function handleDocOrPdfFileUpload(event) {
@@ -3049,9 +2897,7 @@
       const statusEl = document.getElementById('wordFileStatus');
       const nameBadge = document.getElementById('wordFileNameBadge');
       const lowerName = file.name.toLowerCase();
-      statusEl.textContent = 'Đang đọc file & nén hình ảnh (< 1MB)...';
-      extractedWordImages = [];
-      currentEditorWordImageIndex = 0;
+      statusEl.textContent = 'Đang đọc file & tối ưu ảnh (< 1MB)...';
 
       try {
         if (lowerName.endsWith('.pdf') || file.type === 'application/pdf') {
@@ -3062,38 +2908,55 @@
           const pdfDoc = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
           const totalPages = pdfDoc.numPages;
           const pageImages = [];
+          const blocks = [];
           const textChunks = [];
 
           for (let p = 1; p <= totalPages; p++) {
-            statusEl.textContent = `Đang render trang PDF ${p}/${totalPages}...`;
+            statusEl.textContent = `Đang đọc trang PDF ${p}/${totalPages}...`;
             const page = await pdfDoc.getPage(p);
-            const viewport = page.getViewport({ scale: 1.25 });
+            const viewport = page.getViewport({ scale: 1.2 });
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             canvas.width = Math.floor(viewport.width);
             canvas.height = Math.floor(viewport.height);
             await page.render({ canvasContext: ctx, viewport }).promise;
-            const rawPageDataUrl = canvas.toDataURL('image/jpeg', 0.72);
+            const rawPageDataUrl = canvas.toDataURL('image/jpeg', 0.7);
             const compressedPage = await compressSingleImageToLimit(rawPageDataUrl, SAFE_STORED_IMAGE_BYTES);
-            if (compressedPage) pageImages.push(compressedPage);
+            pageImages.push(compressedPage || '');
 
             try {
               const txtContent = await page.getTextContent();
               const pageStr = txtContent.items.map(it => it.str).join(' ').trim();
-              if (pageStr) textChunks.push(`--- Trang ${p} ---\n${pageStr}`);
-            } catch (e) {}
+              if (pageStr) {
+                textChunks.push(pageStr);
+                pageStr.split(/(?=(?:câu|question)\s*\d+\s*[:.)])/i).forEach(seg => {
+                  if (seg.trim()) {
+                    blocks.push({ type: 'text', text: seg.trim(), image: compressedPage || '', pageIdx: p - 1 });
+                  }
+                });
+              } else if (compressedPage) {
+                blocks.push({ type: 'image', text: `Câu ${p}`, image: compressedPage, pageIdx: p - 1 });
+              }
+            } catch (e) {
+              if (compressedPage) {
+                blocks.push({ type: 'image', text: `Câu ${p}`, image: compressedPage, pageIdx: p - 1 });
+              }
+            }
           }
 
-          extractedWordImages = await fitImagesUnderFirestoreLimit(pageImages, 750000);
           currentWordFileName = file.name;
-          document.getElementById('editorWordDocText').value = textChunks.join('\n\n');
           if (!document.getElementById('editorTitle').value.trim()) {
             document.getElementById('editorTitle').value = file.name.replace(/\.pdf$/i, '');
           }
           nameBadge.textContent = `File PDF: ${file.name}`;
-          statusEl.textContent = `Đã tải PDF (${extractedWordImages.length}/${totalPages} trang ảnh — xem ảnh 1 trước)`;
-          renderEditorWordImagePreview();
-          showToast(`Đã tải PDF ${file.name} (${extractedWordImages.length} trang ảnh)`);
+
+          lastUploadedDocPayload = {
+            rawText: textChunks.join('\n\n'),
+            blocks,
+            pageImages,
+            embeddedImages: []
+          };
+          await runAiAnalysisOnPayload(lastUploadedDocPayload);
           return;
         }
 
@@ -3101,9 +2964,10 @@
           throw new Error('Thư viện đọc file Word chưa tải xong');
         }
         const arrayBuffer = await file.arrayBuffer();
-        const foundImgs = [];
+        const embeddedImages = [];
+        const blocks = [];
 
-        await window.mammoth.convertToHtml(
+        const htmlRes = await window.mammoth.convertToHtml(
           { arrayBuffer },
           {
             convertImage: window.mammoth.images.imgElement((image) => {
@@ -3111,98 +2975,54 @@
                 const contentType = image.contentType || 'image/png';
                 const rawDataUrl = `data:${contentType};base64,${imageBuffer}`;
                 const compressed = await compressSingleImageToLimit(rawDataUrl, SAFE_STORED_IMAGE_BYTES);
-                if (compressed) foundImgs.push(compressed);
-                return { src: compressed || rawDataUrl };
+                if (compressed) embeddedImages.push(compressed);
+                return { src: compressed || '' };
               });
             })
           }
         );
 
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlRes.value || '';
+        let pendingImg = '';
+        Array.from(tempDiv.children).forEach((el) => {
+          const imgEl = el.querySelector('img');
+          if (imgEl && imgEl.getAttribute('src')) {
+            pendingImg = imgEl.getAttribute('src');
+          }
+          const txt = (el.textContent || '').trim();
+          if (txt || pendingImg) {
+            blocks.push({
+              type: pendingImg ? 'mixed' : 'text',
+              text: txt,
+              image: pendingImg,
+              pageIdx: 0
+            });
+            pendingImg = '';
+          }
+        });
+
         const textResult = await window.mammoth.extractRawText({ arrayBuffer });
         const extracted = String(textResult.value || '').trim();
 
-        extractedWordImages = await fitImagesUnderFirestoreLimit(foundImgs, 750000);
         currentWordFileName = file.name;
-        document.getElementById('editorWordDocText').value = extracted;
         if (!document.getElementById('editorTitle').value.trim()) {
           document.getElementById('editorTitle').value = file.name.replace(/\.docx$/i, '');
         }
         nameBadge.textContent = `File Word: ${file.name}`;
-        statusEl.textContent = `Đã đọc file (${extracted.length.toLocaleString('vi-VN')} ký tự, ${extractedWordImages.length} ảnh — xem ảnh 1 trước)`;
-        renderEditorWordImagePreview();
-        showToast(`Đã tải ${file.name} (${extractedWordImages.length} ảnh)`);
+
+        lastUploadedDocPayload = {
+          rawText: extracted,
+          blocks,
+          pageImages: [],
+          embeddedImages
+        };
+        await runAiAnalysisOnPayload(lastUploadedDocPayload);
       } catch (err) {
         console.error(err);
         statusEl.textContent = 'Không đọc được file (hãy thử file .docx hoặc .pdf)';
         showToast('Không thể đọc file này. Hãy đảm bảo file có đuôi .docx hoặc .pdf!', true);
       }
-    }
-
-    function syncWordAnswerSheet(existingMcq = null, existingTf = null, existingShort = null) {
-      const mcqWrap = document.getElementById('wordMcqSheetContainer');
-      const tfWrap = document.getElementById('wordTfSheetContainer');
-      const shortWrap = document.getElementById('wordShortSheetContainer');
-      const mcqCount = Math.max(0, Math.min(100, Number(document.getElementById('wordMcqCountInput').value || 0)));
-      const tfCount = Math.max(0, Math.min(40, Number(document.getElementById('wordTfCountInput').value || 0)));
-      const shortCount = Math.max(0, Math.min(40, Number(document.getElementById('wordShortCountInput').value || 0)));
-
-      const prevMcq = existingMcq || Array.from(mcqWrap.querySelectorAll('.word-mcq-row')).map(row => ({
-        correctIndex: Number(row.querySelector('.word-mcq-ans')?.value ?? 0)
-      }));
-      const prevTf = existingTf || Array.from(tfWrap.querySelectorAll('.word-tf-row')).map(row => ({
-        statements: Array.from(row.querySelectorAll('.word-tf-ans')).map(sel => sel.value === 'true')
-      }));
-      const prevShort = existingShort || Array.from(shortWrap.querySelectorAll('.word-short-row')).map(row => ({
-        answer: row.querySelector('.word-short-ans')?.value ?? ''
-      }));
-
-      const letters = ['A', 'B', 'C', 'D'];
-      mcqWrap.innerHTML = Array.from({ length: mcqCount }, (_, idx) => {
-        const cur = Number(prevMcq[idx]?.correctIndex ?? 0);
-        return `
-          <div class="p-2.5 rounded-xl bg-white border border-slate-200 flex items-center justify-between gap-2 word-mcq-row">
-            <span class="text-xs font-bold text-slate-800">Câu ${idx + 1}</span>
-            <select class="px-2 py-1 rounded-lg border border-emerald-300 bg-emerald-100 text-emerald-950 text-xs font-bold word-mcq-ans">
-              ${letters.map((lbl, oIdx) => `<option value="${oIdx}" ${cur === oIdx ? 'selected' : ''}>${lbl}</option>`).join('')}
-            </select>
-          </div>
-        `;
-      }).join('');
-
-      const subLabels = ['a', 'b', 'c', 'd'];
-      tfWrap.innerHTML = Array.from({ length: tfCount }, (_, idx) => {
-        const curSt = prevTf[idx]?.statements || [true, false, true, false];
-        return `
-          <div class="p-3 rounded-xl bg-white border border-slate-200 space-y-2 word-tf-row">
-            <div class="text-xs font-bold text-emerald-800">Phần II • Câu ${idx + 1}</div>
-            <div class="grid grid-cols-4 gap-1.5">
-              ${subLabels.map((lbl, sIdx) => {
-                const isT = Boolean(curSt[sIdx]);
-                return `
-                  <div class="flex flex-col gap-1">
-                    <span class="text-[11px] font-bold text-slate-600 text-center">${lbl})</span>
-                    <select class="px-1.5 py-1 rounded-lg border border-slate-300 text-xs font-bold text-center word-tf-ans">
-                      <option value="true" ${isT ? 'selected' : ''}>Đ</option>
-                      <option value="false" ${!isT ? 'selected' : ''}>S</option>
-                    </select>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      shortWrap.innerHTML = Array.from({ length: shortCount }, (_, idx) => {
-        const curAns = prevShort[idx]?.answer ?? '';
-        return `
-          <div class="p-3 rounded-xl bg-white border border-slate-200 space-y-1.5 word-short-row">
-            <div class="text-xs font-bold text-amber-900">Phần III • Câu trả lời ngắn ${idx + 1}</div>
-            <input type="text" placeholder="Đáp án đúng (VD: 5 hoặc 1,5|1.5)" value="${escapeHtml(curAns)}"
-              class="w-full px-2.5 py-1.5 rounded-lg border border-amber-300 bg-amber-50/60 text-xs font-semibold word-short-ans" />
-          </div>
-        `;
-      }).join('');
     }
 
     function applyAdminPermissionsUI() {
@@ -3490,14 +3310,12 @@
         const statusLabel = (q.examStatus || 'open') === 'open' ? 'Đã mở' : 'Chưa mở';
         const typeLabel = (q.quizType || 'exam') === 'practice' ? 'Bài tập' : 'Đề thi';
         const orderedTags = sortTagsByPriority(q.tags);
-        const wordMode = isWordQuiz(q);
         return `
           <div class="p-3.5 rounded-xl border border-slate-200 flex items-center justify-between gap-3">
             <div class="min-w-0 space-y-1">
               <div class="text-sm font-bold text-slate-900 truncate">${escapeHtml(q.title)}</div>
               <div class="flex items-center gap-1.5 flex-wrap text-xs text-slate-600">
                 <span>${typeLabel}</span>
-                ${wordMode ? `<span>•</span><span class="font-semibold text-indigo-800">Word/PDF</span>` : ''}
                 <span>•</span>
                 <span>${escapeHtml(q.subject)}</span>
                 <span>•</span>
@@ -3525,8 +3343,7 @@
     function resetEditorForNewQuiz() {
       editingQuizId = null;
       currentWordFileName = '';
-      extractedWordImages = [];
-      currentEditorWordImageIndex = 0;
+      lastUploadedDocPayload = null;
       document.getElementById('editorHeading').textContent = 'Tạo Mới';
       document.getElementById('editorTitle').value = '';
       document.getElementById('editorQuizType').value = 'exam';
@@ -3538,16 +3355,13 @@
       document.querySelectorAll('.editor-tag-checkbox').forEach(cb => { cb.checked = false; });
 
       document.getElementById('editorWordFileInput').value = '';
-      document.getElementById('editorWordExternalUrl').value = '';
-      document.getElementById('editorWordImageUrls').value = '';
-      document.getElementById('editorWordDocText').value = '';
       document.getElementById('wordFileStatus').textContent = 'Chưa chọn file Word / PDF';
       document.getElementById('wordFileNameBadge').textContent = '';
-      renderEditorWordImagePreview();
-      document.getElementById('wordMcqCountInput').value = '10';
-      document.getElementById('wordTfCountInput').value = '2';
-      document.getElementById('wordShortCountInput').value = '2';
-      syncWordAnswerSheet();
+      document.getElementById('aiReviewSummaryBadge').textContent =
+        'Khu vực soát & sửa câu hỏi (sau khi tải file, bạn có thể sửa câu, đổi ảnh, sửa đáp án)';
+      document.getElementById('aiMcqList').innerHTML = '';
+      document.getElementById('aiTfList').innerHTML = '';
+      document.getElementById('aiShortList').innerHTML = '';
 
       document.getElementById('editorMcqList').innerHTML = '';
       document.getElementById('editorTfList').innerHTML = '';
@@ -3576,48 +3390,21 @@
         cb.checked = qTags.includes(cb.value);
       });
 
-      if (isWordQuiz(q)) {
-        currentWordFileName = q.wordFileName || '';
-        extractedWordImages = parseImageLines(q.wordImages);
-        currentEditorWordImageIndex = 0;
-        document.getElementById('editorWordExternalUrl').value = q.wordExternalUrl || '';
-        document.getElementById('editorWordImageUrls').value = '';
-        document.getElementById('editorWordDocText').value = q.wordDocText || '';
-        document.getElementById('wordFileNameBadge').textContent = currentWordFileName ? `File: ${currentWordFileName}` : '';
-        document.getElementById('wordFileStatus').textContent = currentWordFileName
-          ? `Đã tải: ${currentWordFileName} (${extractedWordImages.length} ảnh)`
-          : 'Chế độ Word/PDF';
-        renderEditorWordImagePreview();
-        const mcqList = q.mcqQuestions || [];
-        const tfList = q.tfQuestions || [];
-        const shortList = q.shortQuestions || [];
-        document.getElementById('wordMcqCountInput').value = String(mcqList.length);
-        document.getElementById('wordTfCountInput').value = String(tfList.length);
-        document.getElementById('wordShortCountInput').value = String(shortList.length);
-        syncWordAnswerSheet(
-          mcqList.map(m => ({ correctIndex: m.correctIndex })),
-          tfList.map(t => ({ statements: (t.statements || []).map(s => Boolean(s.isTrue)) })),
-          shortList.map(s => ({ answer: s.answer || '' }))
-        );
-        setEditorMode('word');
-      } else {
-        const mcqWrap = document.getElementById('editorMcqList');
-        mcqWrap.innerHTML = '';
-        (q.mcqQuestions || []).forEach(item => addEditorMcqQuestion(item));
+      const mcqWrap = document.getElementById('editorMcqList');
+      const tfWrap = document.getElementById('editorTfList');
+      const shortWrap = document.getElementById('editorShortList');
+      mcqWrap.innerHTML = '';
+      tfWrap.innerHTML = '';
+      shortWrap.innerHTML = '';
 
-        const tfWrap = document.getElementById('editorTfList');
-        tfWrap.innerHTML = '';
-        (q.tfQuestions || []).forEach(item => addEditorTfQuestion(item));
-
-        const shortWrap = document.getElementById('editorShortList');
-        shortWrap.innerHTML = '';
-        (q.shortQuestions || []).forEach(item => addEditorShortQuestion(item));
-        setEditorMode('standard');
-      }
+      (q.mcqQuestions || []).forEach(item => addEditorMcqQuestion(item));
+      (q.tfQuestions || []).forEach(item => addEditorTfQuestion(item));
+      (q.shortQuestions || []).forEach(item => addEditorShortQuestion(item));
+      setEditorMode('standard');
     }
 
     // =========================================================================
-    // TRÌNH SOẠN TỪNG CÂU (PHẦN I, II, III) — 1 ẢNH / CÂU (< 1MB)
+    // TRÌNH SOẠN & SOÁT TỪNG CÂU (PHẦN I, II, III) — 1 ẢNH / CÂU (< 1MB)
     // =========================================================================
     async function handleQuestionSingleFileUpload(inputEl) {
       const file = inputEl?.files?.[0];
@@ -3637,6 +3424,7 @@
         const rawDataUrl = String(e.target?.result || '');
         const compressed = await compressSingleImageToLimit(rawDataUrl, SAFE_STORED_IMAGE_BYTES);
         if (!compressed) {
+          showToast('Ảnh vượt quá 1MB sau khi nén. Vui lòng chọn ảnh nhẹ hơn!', true);
           inputEl.value = '';
           return;
         }
@@ -3733,7 +3521,7 @@
     }
 
     function addEditorMcqQuestion(data = null) {
-      const wrap = document.getElementById('editorMcqList');
+      const wrap = getActiveQuestionLists().mcq;
       const card = document.createElement('div');
       card.className = 'p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3 editor-mcq-item editor-question-card';
       const opts = data?.options || ['', '', '', ''];
@@ -3786,7 +3574,7 @@
     }
 
     function addEditorTfQuestion(data = null) {
-      const wrap = document.getElementById('editorTfList');
+      const wrap = getActiveQuestionLists().tf;
       const card = document.createElement('div');
       card.className = 'p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3 editor-tf-item editor-question-card';
       const subLabels = ['a', 'b', 'c', 'd'];
@@ -3830,7 +3618,7 @@
     }
 
     function addEditorShortQuestion(data = null) {
-      const wrap = document.getElementById('editorShortList');
+      const wrap = getActiveQuestionLists().short;
       const card = document.createElement('div');
       card.className = 'p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-3 editor-short-item editor-question-card';
       const singleImg = getSingleQuestionImage(data);
@@ -3882,98 +3670,10 @@
       }
 
       const quizId = editingQuizId || `quiz-${Date.now()}`;
-
-      if (currentEditorMode === 'word') {
-        const wordDocText = document.getElementById('editorWordDocText').value.trim();
-        const wordExternalUrl = document.getElementById('editorWordExternalUrl').value.trim();
-        const manualImgs = parseImageLines(document.getElementById('editorWordImageUrls').value);
-        const wordImages = await fitImagesUnderFirestoreLimit([...extractedWordImages, ...manualImgs], 750000);
-
-        if (!wordDocText && !wordExternalUrl && !wordImages.length) {
-          showToast('Vui lòng tải file Word (.docx), PDF (.pdf), thêm ảnh hoặc nhập nội dung đề.', true);
-          return;
-        }
-
-        const mcqQuestions = Array.from(document.querySelectorAll('#wordMcqSheetContainer .word-mcq-row')).map((row, idx) => {
-          const correctIndex = Number(row.querySelector('.word-mcq-ans')?.value ?? 0);
-          return {
-            id: `w-mcq-${idx + 1}`,
-            prompt: `Câu ${idx + 1}`,
-            image: '',
-            images: [],
-            options: ['A', 'B', 'C', 'D'],
-            correctIndex,
-            explanation: ''
-          };
-        });
-
-        const tfQuestions = Array.from(document.querySelectorAll('#wordTfSheetContainer .word-tf-row')).map((row, idx) => {
-          const subLabels = ['a', 'b', 'c', 'd'];
-          const bools = Array.from(row.querySelectorAll('.word-tf-ans'));
-          return {
-            id: `w-tf-${idx + 1}`,
-            prompt: `Câu II.${idx + 1}`,
-            image: '',
-            images: [],
-            statements: subLabels.map((lbl, sIdx) => ({
-              text: `Ý ${lbl})`,
-              isTrue: bools[sIdx]?.value === 'true'
-            })),
-            explanation: ''
-          };
-        });
-
-        const shortQuestions = Array.from(document.querySelectorAll('#wordShortSheetContainer .word-short-row')).map((row, idx) => {
-          const ans = String(row.querySelector('.word-short-ans')?.value ?? '').trim();
-          return {
-            id: `w-sa-${idx + 1}`,
-            prompt: `Câu III.${idx + 1}`,
-            image: '',
-            images: [],
-            answer: ans,
-            explanation: ''
-          };
-        });
-
-        if (!mcqQuestions.length && !tfQuestions.length && !shortQuestions.length) {
-          showToast('Cần có ít nhất 1 câu ở phiếu đáp án Phần I, Phần II hoặc Phần III.', true);
-          return;
-        }
-
-        const quizObj = {
-          id: quizId,
-          quizFormat: 'word',
-          wordFileName: currentWordFileName || '',
-          wordExternalUrl,
-          wordImages,
-          wordDocText,
-          title,
-          quizType,
-          subject,
-          accessMode,
-          examStatus,
-          tags,
-          description: description || `Đề Word/PDF môn ${subject}`,
-          durationMinutes,
-          mcqQuestions,
-          tfQuestions,
-          shortQuestions,
-          updatedAt: new Date().toISOString()
-        };
-
-        try {
-          await db.collection(COLLECTIONS.QUIZZES).doc(quizId).set(quizObj);
-          editingQuizId = quizId;
-          showToast('Đã lưu đề Word/PDF & hình ảnh lên Cloud!');
-        } catch (err) {
-          console.error(err);
-          showToast('Lỗi lưu lên Firestore (vượt giới hạn 1MB/document — hãy dùng link ảnh hoặc giảm số trang).', true);
-        }
-        return;
-      }
+      const lists = getActiveQuestionLists();
 
       const mcqQuestions = [];
-      for (const [idx, card] of Array.from(document.querySelectorAll('#editorMcqList .editor-mcq-item')).entries()) {
+      for (const [idx, card] of Array.from(lists.mcq.querySelectorAll('.editor-mcq-item')).entries()) {
         const prompt = card.querySelector('.mcq-prompt').value.trim();
         const rawImg = card.querySelector('.question-image-data')?.value?.trim()
           || card.querySelector('.question-image-url')?.value?.trim()
@@ -3999,7 +3699,7 @@
       }
 
       const tfQuestions = [];
-      for (const [idx, card] of Array.from(document.querySelectorAll('#editorTfList .editor-tf-item')).entries()) {
+      for (const [idx, card] of Array.from(lists.tf.querySelectorAll('.editor-tf-item')).entries()) {
         const prompt = card.querySelector('.tf-prompt').value.trim();
         const rawImg = card.querySelector('.question-image-data')?.value?.trim()
           || card.querySelector('.question-image-url')?.value?.trim()
@@ -4024,7 +3724,7 @@
       }
 
       const shortQuestions = [];
-      for (const [idx, card] of Array.from(document.querySelectorAll('#editorShortList .editor-short-item')).entries()) {
+      for (const [idx, card] of Array.from(lists.short.querySelectorAll('.editor-short-item')).entries()) {
         const prompt = card.querySelector('.short-prompt').value.trim();
         const rawImg = card.querySelector('.question-image-data')?.value?.trim()
           || card.querySelector('.question-image-url')?.value?.trim()
@@ -4071,7 +3771,7 @@
         showToast('Đã lưu lên Cloud (mọi thiết bị đã cập nhật)!');
       } catch (err) {
         console.error(err);
-        showToast('Lỗi lưu lên Firestore (vượt 1MB/document — hãy dùng link ảnh ngoài).', true);
+        showToast('Lỗi lưu lên Firestore (vượt 1MB/document — hãy dùng link ảnh ngoài hoặc giảm ảnh).', true);
       }
     }
 
