@@ -12,6 +12,8 @@
   <!-- Firebase SDK (Compat v10 chạy trực tiếp trên GitHub Pages) -->
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <!-- Mammoth.js để đọc trực tiếp file Word (.docx) trên trình duyệt -->
+  <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
 
   <style>
     :root {
@@ -108,9 +110,16 @@
     input[type="email"],
     input[type="password"],
     input[type="number"],
-    select {
+    select,
+    textarea {
       background-color: var(--bg-input) !important;
       color: var(--text-main) !important;
+    }
+
+    .word-doc-viewer {
+      white-space: pre-wrap;
+      line-height: 1.7;
+      font-size: 0.92rem;
     }
 
     .modal-backdrop {
@@ -190,7 +199,7 @@
 
         <button id="btnAdminNav" type="button" onclick="openAdminView()"
           class="hidden px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-700 text-white hover:bg-blue-800 transition items-center gap-1.5">
-          <span>Quản lý đề &amp; Tài khoản</span>
+          <span id="btnAdminNavLabel">Quản lý đề</span>
         </button>
 
         <div id="authGuestBox" class="flex items-center gap-2">
@@ -289,7 +298,7 @@
             </div>
             <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Danh Sách Đề &amp; Bài Tập</h1>
             <p class="text-sm text-slate-600 mt-0.5">
-              Cấu trúc chuẩn THPT Quốc Gia (Phần I A-B-C-D &amp; Phần II Đúng/Sai a-b-c-d).
+              Cấu trúc chuẩn THPT Quốc Gia (Phần I A-B-C-D &amp; Phần II Đúng/Sai a-b-c-d) &amp; Đề nhanh từ file Word.
             </p>
           </div>
 
@@ -365,7 +374,7 @@
               Natech — Luyện Thi &amp; Làm Bài Trắc Nghiệm Trực Tuyến
             </h2>
             <p class="text-sm text-slate-600 leading-relaxed">
-              <strong>Natech</strong> hỗ trợ học sinh ôn luyện và làm đề chuẩn cấu trúc THPT Quốc Gia (Phần I trắc nghiệm A, B, C, D và Phần II Đúng/Sai a, b, c, d), chấm điểm tự động và lưu lịch sử làm bài minh bạch.
+              <strong>Natech</strong> hỗ trợ học sinh ôn luyện và làm đề chuẩn cấu trúc THPT Quốc Gia (Phần I trắc nghiệm A, B, C, D và Phần II Đúng/Sai a, b, c, d) hoặc đọc trực tiếp file Word và chọn đáp án trên hệ thống, chấm điểm tự động và lưu lịch sử làm bài minh bạch.
             </p>
             <p class="text-xs text-slate-600">
               Cần cấp tài khoản học sinh hoặc hỗ trợ nội dung đề thi, vui lòng liên hệ trực tiếp quản trị viên bên cạnh.
@@ -548,7 +557,7 @@
           </div>
           <div class="flex items-center gap-2">
             <input id="historySearchInput" type="text" oninput="renderHistoryTable()"
-              placeholder="Tìm theo tên học sinh, email hoặc tên đề..."
+              placeholder="Tìm theo tên học sinh, trường/lớp hoặc tên đề..."
               class="hidden px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
             <button type="button" onclick="goHome()"
               class="px-4 py-2 rounded-xl border border-slate-300 hover:bg-slate-100 text-sm font-semibold text-slate-700 transition">
@@ -562,7 +571,7 @@
             <thead class="bg-slate-50 text-blue-950 font-semibold">
               <tr>
                 <th class="px-4 py-3 text-left">Thời gian</th>
-                <th class="px-4 py-3 text-left">Học sinh</th>
+                <th class="px-4 py-3 text-left">Thí sinh</th>
                 <th class="px-4 py-3 text-left">Đề / Bài tập</th>
                 <th class="px-4 py-3 text-center">Phần I</th>
                 <th class="px-4 py-3 text-center">Phần II</th>
@@ -576,11 +585,11 @@
       </div>
     </section>
 
-    <!-- VIEW 5: Quản lý đề thi & Cấp tài khoản học sinh (Chỉ dành cho Admin) -->
+    <!-- VIEW 5: Quản lý đề thi (Tất cả Admin) & Quản lý tài khoản (Chỉ tunguyenne292k8@gmail.com) -->
     <section id="adminView" class="hidden">
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div id="adminMainGrid" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <!-- Cột trái -->
-        <div class="lg:col-span-5 space-y-6 h-fit">
+        <div id="adminLeftColumn" class="lg:col-span-5 space-y-6 h-fit">
           <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6">
             <div class="flex items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-200">
               <div>
@@ -596,11 +605,12 @@
             <div id="adminQuizList" class="space-y-2.5"></div>
           </div>
 
-          <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6">
+          <!-- Chỉ tunguyenne292k8@gmail.com mới thấy và dùng được khối này -->
+          <div id="accountManagementCard" class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6">
             <div class="mb-4 pb-3 border-b border-slate-200">
               <h3 class="text-lg font-bold text-slate-900">Cấp Tài Khoản &amp; Quyền Admin</h3>
               <p class="text-xs text-slate-600 mt-0.5">
-                Tạo tài khoản mới hoặc cấp / gỡ quyền Admin trực tiếp cho tài khoản đã tạo.
+                Chỉ tài khoản <strong>tunguyenne292k8@gmail.com</strong> mới có quyền cấp tài khoản. Các Admin khác chỉ được tạo đề thi.
               </p>
             </div>
 
@@ -622,7 +632,7 @@
               </div>
               <label class="inline-flex items-center gap-2 cursor-pointer text-xs font-semibold text-blue-950">
                 <input id="studentGrantAdminCheckbox" type="checkbox" class="accent-indigo-700 rounded" />
-                <span>Cấp luôn quyền Admin cho tài khoản này</span>
+                <span>Cấp quyền Admin (chỉ được tạo đề thi)</span>
               </label>
               <p id="studentCreateError" class="text-xs font-medium text-rose-700 hidden"></p>
               <button type="submit"
@@ -638,17 +648,35 @@
           </div>
         </div>
 
-        <!-- Cột phải -->
-        <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-6">
+        <!-- Cột phải: Trình biên soạn đề thi (Mọi Admin đều dùng được) -->
+        <div id="adminRightColumn" class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-6">
           <div class="flex items-center justify-between gap-2 pb-4 border-b border-slate-200">
             <div>
               <h3 id="editorHeading" class="text-xl font-bold text-slate-900">Tạo Mới</h3>
-              <p class="text-xs text-slate-600">Hỗ trợ Phần I (A, B, C, D) và Phần II (Đúng/Sai a, b, c, d)</p>
+              <p class="text-xs text-slate-600">Tạo chuẩn câu hỏi hoặc tạo nhanh từ file Word (.docx) + phiếu đáp án</p>
             </div>
             <button type="button" onclick="saveCurrentQuizFromEditor()"
               class="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold transition">
               Lưu lại
             </button>
+          </div>
+
+          <!-- Chọn chế độ tạo đề -->
+          <div class="p-3.5 rounded-2xl bg-blue-50/80 border border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div class="text-xs font-extrabold uppercase tracking-wider text-blue-950">Chế độ tạo đề</div>
+              <div class="text-xs text-slate-600">Up file Word cho học sinh đọc và chỉ cần chọn đáp án trên hệ thống</div>
+            </div>
+            <div class="inline-flex rounded-xl bg-white p-1 border border-slate-300 shrink-0">
+              <button id="modeStandardBtn" type="button" onclick="setEditorMode('standard')"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-700 text-white transition">
+                Soạn từng câu
+              </button>
+              <button id="modeWordBtn" type="button" onclick="setEditorMode('word')"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 transition">
+                Tạo nhanh từ file Word
+              </button>
+            </div>
           </div>
 
           <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
@@ -728,30 +756,99 @@
             </div>
           </div>
 
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-800">
-                2. Phần I: Câu trắc nghiệm nhiều lựa chọn (A, B, C, D)
-              </h4>
-              <button type="button" onclick="addEditorMcqQuestion()"
-                class="px-3 py-1.5 rounded-lg bg-indigo-100 hover:bg-indigo-200 text-indigo-900 text-xs font-semibold border border-indigo-200 transition">
-                + Thêm câu Phần I
-              </button>
+          <!-- KHỐI SOẠN CHUẨN -->
+          <div id="standardEditorSection" class="space-y-6">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-800">
+                  2. Phần I: Câu trắc nghiệm nhiều lựa chọn (A, B, C, D)
+                </h4>
+                <button type="button" onclick="addEditorMcqQuestion()"
+                  class="px-3 py-1.5 rounded-lg bg-indigo-100 hover:bg-indigo-200 text-indigo-900 text-xs font-semibold border border-indigo-200 transition">
+                  + Thêm câu Phần I
+                </button>
+              </div>
+              <div id="editorMcqList" class="space-y-3.5"></div>
             </div>
-            <div id="editorMcqList" class="space-y-3.5"></div>
+
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-800">
+                  3. Phần II: Câu trắc nghiệm Đúng / Sai (4 ý a, b, c, d)
+                </h4>
+                <button type="button" onclick="addEditorTfQuestion()"
+                  class="px-3 py-1.5 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-900 text-xs font-semibold border border-emerald-200 transition">
+                  + Thêm câu Phần II
+                </button>
+              </div>
+              <div id="editorTfList" class="space-y-3.5"></div>
+            </div>
           </div>
 
-          <div>
-            <div class="flex items-center justify-between mb-3">
-              <h4 class="text-xs font-bold uppercase tracking-wider text-emerald-800">
-                3. Phần II: Câu trắc nghiệm Đúng / Sai (4 ý a, b, c, d)
-              </h4>
-              <button type="button" onclick="addEditorTfQuestion()"
-                class="px-3 py-1.5 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-900 text-xs font-semibold border border-emerald-200 transition">
-                + Thêm câu Phần II
-              </button>
+          <!-- KHỐI TẠO NHANH TỪ FILE WORD -->
+          <div id="wordEditorSection" class="hidden space-y-5">
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+              <div class="flex items-center justify-between gap-2 flex-wrap">
+                <span class="text-xs font-bold uppercase tracking-wider text-blue-900">
+                  2. Tải file Word (.docx) cho học sinh đọc
+                </span>
+                <span id="wordFileStatus" class="text-xs font-semibold text-slate-600">Chưa chọn file Word</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Chọn file Word (.docx) *</label>
+                  <input id="editorWordFileInput" type="file" accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    onchange="handleWordFileUpload(event)"
+                    class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-100 file:text-indigo-900 hover:file:bg-indigo-200" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Link file Word gốc (tùy chọn)</label>
+                  <input id="editorWordExternalUrl" type="url" placeholder="https://docs.google.com/... hoặc link tải file"
+                    class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                </div>
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label class="block text-xs font-semibold text-slate-700">Nội dung đề Word hiển thị cho học sinh (có thể chỉnh sửa nhanh)</label>
+                  <span id="wordFileNameBadge" class="text-[11px] font-medium text-indigo-800"></span>
+                </div>
+                <textarea id="editorWordDocText" rows="8"
+                  placeholder="Tải file .docx ở trên để tự động trích xuất nội dung đề vào đây, hoặc dán nội dung đề Word trực tiếp..."
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+              </div>
             </div>
-            <div id="editorTfList" class="space-y-3.5"></div>
+
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+              <div class="flex items-center justify-between gap-2 flex-wrap">
+                <div>
+                  <div class="text-xs font-bold uppercase tracking-wider text-emerald-900">
+                    3. Phiếu đáp án nhanh (Học sinh chỉ chọn đáp án trên hệ thống)
+                  </div>
+                  <div class="text-xs text-slate-600 mt-0.5">
+                    Nhập số lượng câu và chọn đáp án đúng tương ứng với file Word
+                  </div>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <label class="text-xs font-semibold text-slate-700">Số câu Phần I:</label>
+                  <input id="wordMcqCountInput" type="number" min="0" max="100" value="10"
+                    onchange="syncWordAnswerSheet()"
+                    class="w-16 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-center" />
+                  <label class="text-xs font-semibold text-slate-700 ml-1">Phần II:</label>
+                  <input id="wordTfCountInput" type="number" min="0" max="40" value="2"
+                    onchange="syncWordAnswerSheet()"
+                    class="w-16 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs font-bold text-center" />
+                  <button type="button" onclick="syncWordAnswerSheet()"
+                    class="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold">
+                    Tạo phiếu
+                  </button>
+                </div>
+              </div>
+
+              <div id="wordMcqSheetContainer" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2"></div>
+              <div id="wordTfSheetContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -771,6 +868,54 @@
       </div>
     </div>
   </footer>
+
+  <!-- Modal Điền thông tin thí sinh cho tài khoản Khách -->
+  <div id="guestInfoModal" class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 modal-backdrop hidden-modal">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-900 border border-blue-200">
+            Chế độ Khách
+          </span>
+          <h3 class="text-lg font-bold text-slate-900 mt-1.5">Thông tin thí sinh</h3>
+          <p id="guestModalQuizTitle" class="text-xs text-slate-600 mt-0.5 line-clamp-1">
+            Vui lòng nhập họ tên để lưu lịch sử làm bài minh bạch
+          </p>
+        </div>
+        <button type="button" onclick="closeGuestInfoModal()"
+          class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-600 font-bold shrink-0">
+          ✕
+        </button>
+      </div>
+
+      <form id="guestInfoForm" onsubmit="handleGuestInfoSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Họ và tên <span class="text-rose-700">*</span></label>
+          <input id="guestFullNameInput" type="text" required placeholder="Ví dụ: Trần Minh Quân"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Trường / Lớp</label>
+          <input id="guestClassSchoolInput" type="text" placeholder="Ví dụ: THPT chuyên - Lớp 12A1"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        </div>
+
+        <p id="guestInfoErrorMsg" class="text-xs font-medium text-rose-700 hidden"></p>
+
+        <div class="flex items-center justify-end gap-2 pt-1">
+          <button type="button" onclick="closeGuestInfoModal()"
+            class="px-4 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm font-semibold text-slate-700 hover:bg-slate-100 transition">
+            Hủy
+          </button>
+          <button type="submit"
+            class="px-5 py-2.5 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white text-xs sm:text-sm font-semibold transition">
+            Xác nhận &amp; Làm bài
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 
   <!-- Modal Đăng nhập -->
   <div id="authModal" class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 modal-backdrop hidden-modal">
@@ -848,7 +993,7 @@
     </div>
   </div>
 
-  <!-- Modal Admin cấp lại mật khẩu cho tài khoản -->
+  <!-- Modal Admin cấp lại mật khẩu cho tài khoản (Chỉ tunguyenne292k8@gmail.com) -->
   <div id="resetStudentPasswordModal" class="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 modal-backdrop hidden-modal">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-slate-200">
       <div class="flex items-center justify-between mb-4">
@@ -937,10 +1082,10 @@
       META: 'natech_meta'
     };
 
-    // Danh sách email Admin gốc (luôn có quyền Admin, có thể thêm email khác tại đây)
-    const BASE_ADMIN_EMAILS = ['tunguyenne292k8@gmail.com'];
-    const PRIMARY_ADMIN_EMAIL = BASE_ADMIN_EMAILS[0];
+    // Tài khoản Super Admin duy nhất có quyền cấp tài khoản; các Admin khác chỉ được tạo đề thi
+    const PRIMARY_ADMIN_EMAIL = 'tunguyenne292k8@gmail.com';
     const SESSION_STORAGE_KEY = 'natech_vn_session_v2';
+    const GUEST_INFO_STORAGE_KEY = 'natech_vn_guest_info_v1';
 
     const DEFAULT_QUIZZES = [
       {
@@ -1035,6 +1180,8 @@
     let directQuizOpened = false;
 
     let currentUser = null;
+    let currentGuestInfo = null;
+    let pendingGuestQuizId = null;
     let activeQuiz = null;
     let userAnswers = { mcq: {}, tf: {} };
     let quizTimerInterval = null;
@@ -1118,7 +1265,11 @@
     }
 
     function isPrimaryAdminEmail(email) {
-      return BASE_ADMIN_EMAILS.map(normalizeEmail).includes(normalizeEmail(email));
+      return normalizeEmail(email) === normalizeEmail(PRIMARY_ADMIN_EMAIL);
+    }
+
+    function canManageAccounts(user = currentUser) {
+      return Boolean(user && isPrimaryAdminEmail(user.email));
     }
 
     function isAdminEmail(email, userObj = null) {
@@ -1272,11 +1423,16 @@
                 updateStatsBar();
                 if (!nextIsAdmin && !document.getElementById('adminView').classList.contains('hidden')) {
                   goHome();
+                } else if (!document.getElementById('adminView').classList.contains('hidden')) {
+                  applyAdminPermissionsUI();
                 }
               }
             }
             if (!document.getElementById('adminView').classList.contains('hidden')) {
-              renderStudentAccountsList();
+              applyAdminPermissionsUI();
+              if (canManageAccounts()) {
+                renderStudentAccountsList();
+              }
             }
           },
           (err) => {
@@ -1460,6 +1616,7 @@
         email: normalized,
         isAdmin: isAdminEmail(normalized, user)
       };
+      currentGuestInfo = null;
       localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(currentUser));
       updateAuthUI();
       updateStatsBar();
@@ -1479,6 +1636,7 @@
       const guestBox = document.getElementById('authGuestBox');
       const userBox = document.getElementById('authUserBox');
       const adminNavBtn = document.getElementById('btnAdminNav');
+      const adminNavLabel = document.getElementById('btnAdminNavLabel');
       const adminBadge = document.getElementById('adminBadge');
 
       if (!currentUser) {
@@ -1502,6 +1660,8 @@
       if (currentUser.isAdmin) {
         adminNavBtn.classList.remove('hidden');
         adminNavBtn.classList.add('flex');
+        adminNavLabel.textContent = canManageAccounts() ? 'Quản lý đề & Tài khoản' : 'Quản lý đề';
+        adminBadge.textContent = canManageAccounts() ? 'Super Admin' : 'Admin';
         adminBadge.classList.remove('hidden');
       } else {
         adminNavBtn.classList.add('hidden');
@@ -1550,7 +1710,9 @@
         ? allHistory
         : currentUser
           ? allHistory.filter(h => normalizeEmail(h.userEmail) === currentUser.email)
-          : [];
+          : currentGuestInfo
+            ? allHistory.filter(h => h.guestSessionId && h.guestSessionId === currentGuestInfo.sessionId)
+            : [];
 
       const total = visibleHistory.length;
       const avg = total
@@ -1566,17 +1728,25 @@
 
       const note = document.getElementById('statScopeNote');
       if (currentUser && currentUser.isAdmin) {
-        note.textContent = 'Chế độ Admin: Thống kê toàn bộ học sinh';
+        note.textContent = canManageAccounts()
+          ? 'Chế độ Super Admin: Thống kê toàn bộ học sinh'
+          : 'Chế độ Admin (Tạo đề): Thống kê toàn bộ học sinh';
       } else if (currentUser) {
         note.textContent = `Tài khoản: ${currentUser.email}`;
+      } else if (currentGuestInfo) {
+        note.textContent = `Khách: ${currentGuestInfo.fullName}${currentGuestInfo.classSchool ? ` (${currentGuestInfo.classSchool})` : ''}`;
       } else {
-        note.textContent = 'Đăng nhập để xem thống kê cá nhân';
+        note.textContent = 'Nhập họ tên (Khách) hoặc đăng nhập để xem thống kê';
       }
     }
 
     // =========================================================================
-    // 7. DANH SÁCH ĐỀ THI, TRANG PHỤ THÔNG TIN ĐỀ & LÀM BÀI CHUẨN THPT QUỐC GIA
+    // 7. DANH SÁCH ĐỀ THI, TRANG PHỤ THÔNG TIN ĐỀ & LÀM BÀI (CHUẨN + FILE WORD)
     // =========================================================================
+    function isWordQuiz(quiz) {
+      return quiz?.quizFormat === 'word';
+    }
+
     function renderQuizList() {
       const grid = document.getElementById('quizGrid');
       const searchQuery = (document.getElementById('quizSearchInput')?.value || '').trim().toLowerCase();
@@ -1629,6 +1799,7 @@
         const isOpen = (quiz.examStatus || 'open') === 'open';
         const orderedTags = sortTagsByPriority(quiz.tags);
         const isHot = orderedTags.includes('Hot');
+        const wordMode = isWordQuiz(quiz);
 
         return `
           <div onclick="openQuizDetailView('${escapeHtml(quiz.id)}')"
@@ -1638,6 +1809,7 @@
                 <div class="flex items-center gap-1.5 flex-wrap">
                   ${orderedTags.map(t => renderTagBadge(t)).join('')}
                   ${renderQuizTypeBadge(quiz.quizType)}
+                  ${wordMode ? `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-900 border border-indigo-300">File Word</span>` : ''}
                 </div>
                 <span class="text-xs font-semibold text-blue-900">⏱ ${Number(quiz.durationMinutes || 15)} phút</span>
               </div>
@@ -1665,7 +1837,7 @@
                 <span>Tổng: <strong>${mcqCount + tfCount}</strong> câu</span>
               </div>
               <div class="w-full py-2.5 px-3 rounded-xl bg-indigo-700 text-white text-center text-sm font-semibold">
-                Xem thông tin &amp; làm bài
+                ${wordMode ? 'Đọc file Word & chọn đáp án' : 'Xem thông tin & làm bài'}
               </div>
             </div>
           </div>
@@ -1693,10 +1865,12 @@
       const isAdmin = Boolean(currentUser && currentUser.isAdmin);
       const orderedTags = sortTagsByPriority(found.tags);
       const shareUrl = getQuizShareUrl(found.id);
+      const wordMode = isWordQuiz(found);
 
-      document.getElementById('detailQuizTopTags').innerHTML = orderedTags.length
-        ? orderedTags.map(t => renderTagBadge(t)).join('')
-        : '<span class="text-xs text-slate-500">Không có nhãn</span>';
+      document.getElementById('detailQuizTopTags').innerHTML = [
+        ...(orderedTags.length ? orderedTags.map(t => renderTagBadge(t)) : []),
+        ...(wordMode ? [`<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-900 border border-indigo-300">Đề file Word${found.wordFileName ? `: ${escapeHtml(found.wordFileName)}` : ''}</span>`] : [])
+      ].join('') || '<span class="text-xs text-slate-500">Không có nhãn</span>';
 
       const typePlaceholder = document.getElementById('detailQuizTypeBadge');
       const tempSpan = document.createElement('span');
@@ -1753,11 +1927,91 @@
         startBtn.className = 'px-6 py-3 rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-sm font-semibold transition';
         startBtn.onclick = () => openAuthModal();
       } else {
-        startBtn.textContent = 'Bắt đầu làm bài';
+        startBtn.textContent = wordMode ? 'Mở đề Word & chọn đáp án' : 'Bắt đầu làm bài';
         startBtn.disabled = false;
         startBtn.className = 'px-6 py-3 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white text-sm font-semibold transition';
-        startBtn.onclick = () => startQuiz(found.id);
+        startBtn.onclick = () => handleStartQuizClick(found.id);
       }
+    }
+
+    function openGuestInfoModal(quiz) {
+      pendingGuestQuizId = quiz.id;
+      document.getElementById('guestModalQuizTitle').textContent = quiz.title || 'Vui lòng nhập họ tên để lưu lịch sử làm bài minh bạch';
+      document.getElementById('guestFullNameInput').value = currentGuestInfo?.fullName || '';
+      document.getElementById('guestClassSchoolInput').value = currentGuestInfo?.classSchool || '';
+      document.getElementById('guestInfoErrorMsg').classList.add('hidden');
+      document.getElementById('guestInfoModal').classList.remove('hidden-modal');
+      setTimeout(() => {
+        document.getElementById('guestFullNameInput')?.focus();
+      }, 60);
+    }
+
+    function closeGuestInfoModal() {
+      pendingGuestQuizId = null;
+      document.getElementById('guestInfoModal').classList.add('hidden-modal');
+    }
+
+    function handleGuestInfoSubmit(event) {
+      event.preventDefault();
+      const fullName = String(document.getElementById('guestFullNameInput').value || '').trim();
+      const classSchool = String(document.getElementById('guestClassSchoolInput').value || '').trim();
+      const errEl = document.getElementById('guestInfoErrorMsg');
+      errEl.classList.add('hidden');
+
+      if (!fullName) {
+        errEl.textContent = 'Vui lòng nhập Họ và tên (bắt buộc) để lưu lịch sử làm bài.';
+        errEl.classList.remove('hidden');
+        document.getElementById('guestFullNameInput')?.focus();
+        return;
+      }
+
+      const existingSessionId = currentGuestInfo?.sessionId || `guest-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      currentGuestInfo = {
+        fullName,
+        classSchool,
+        sessionId: existingSessionId
+      };
+      try {
+        localStorage.setItem(GUEST_INFO_STORAGE_KEY, JSON.stringify(currentGuestInfo));
+      } catch (e) {
+        // Bỏ qua nếu trình duyệt chặn storage
+      }
+      updateStatsBar();
+
+      const targetId = pendingGuestQuizId;
+      closeGuestInfoModal();
+      if (targetId) {
+        startQuiz(targetId);
+      }
+    }
+
+    function handleStartQuizClick(quizId) {
+      const found = quizzes.find(q => q.id === quizId);
+      if (!found) {
+        showToast('Không tìm thấy đề thi.', true);
+        return;
+      }
+
+      const isAdmin = Boolean(currentUser && currentUser.isAdmin);
+      if ((found.examStatus || 'open') === 'closed' && !isAdmin) {
+        showToast('Hiện đang ở chế độ Chưa mở.', true);
+        openQuizDetailView(found.id);
+        return;
+      }
+
+      if ((found.accessMode || 'public') === 'assigned' && !currentUser) {
+        showToast('Chỉ dành cho tài khoản đã được cấp. Vui lòng đăng nhập!', true);
+        openQuizDetailView(found.id);
+        openAuthModal();
+        return;
+      }
+
+      if (!currentUser) {
+        openGuestInfoModal(found);
+        return;
+      }
+
+      startQuiz(quizId);
     }
 
     function startQuiz(quizId) {
@@ -1778,6 +2032,11 @@
         showToast('Chỉ dành cho tài khoản đã được cấp. Vui lòng đăng nhập!', true);
         openQuizDetailView(found.id);
         openAuthModal();
+        return;
+      }
+
+      if (!currentUser && (!currentGuestInfo || !String(currentGuestInfo.fullName || '').trim())) {
+        openGuestInfoModal(found);
         return;
       }
 
@@ -1840,6 +2099,97 @@
       const navGrid = document.getElementById('questionNavGrid');
       const mcqList = activeQuiz.mcqQuestions || [];
       const tfList = activeQuiz.tfQuestions || [];
+
+      if (isWordQuiz(activeQuiz)) {
+        let html = '';
+        let navHtml = '';
+        let qIndex = 1;
+
+        html += `
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-3">
+            <div class="flex items-center justify-between gap-2 flex-wrap pb-3 border-b border-slate-200">
+              <div>
+                <span class="text-xs font-extrabold uppercase tracking-wider text-blue-900">Tài liệu đề (File Word)</span>
+                <h3 class="text-base font-bold text-slate-900 mt-0.5">
+                  ${escapeHtml(activeQuiz.wordFileName || activeQuiz.title)}
+                </h3>
+              </div>
+              ${activeQuiz.wordExternalUrl ? `
+                <a href="${escapeHtml(activeQuiz.wordExternalUrl)}" target="_blank" rel="noopener noreferrer"
+                  class="px-3.5 py-2 rounded-xl bg-blue-100 hover:bg-blue-200 text-blue-950 text-xs font-semibold border border-blue-200 transition">
+                  Mở file Word gốc ↗
+                </a>
+              ` : ''}
+            </div>
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 max-h-[60vh] overflow-y-auto word-doc-viewer text-slate-900">${escapeHtml(activeQuiz.wordDocText || '(Chưa có nội dung văn bản trong file Word)')}</div>
+          </div>
+        `;
+
+        if (mcqList.length) {
+          html += `<div class="text-xs font-extrabold uppercase tracking-wider text-indigo-800 pt-1">Phiếu trả lời Phần I: Chọn đáp án A, B, C, D</div>`;
+          html += `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">`;
+          mcqList.forEach((q) => {
+            const domId = `q-anchor-${qIndex}`;
+            navHtml += `<a href="#${domId}" id="nav-btn-${domId}" class="w-8 h-8 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-700 flex items-center justify-center hover:border-indigo-400">C${qIndex}</a>`;
+            const letters = ['A', 'B', 'C', 'D'];
+            html += `
+              <div id="${domId}" class="bg-white rounded-2xl border border-slate-200 p-4 flex items-center justify-between gap-2">
+                <span class="text-sm font-bold text-slate-900">Câu ${qIndex}</span>
+                <div class="flex items-center gap-1.5">
+                  ${letters.map((lbl, optIdx) => `
+                    <label class="w-9 h-9 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-800 flex items-center justify-center cursor-pointer has-[:checked]:bg-indigo-700 has-[:checked]:text-white has-[:checked]:border-indigo-700 transition">
+                      <input type="radio" name="mcq_${q.id}" value="${optIdx}"
+                        onchange="selectMcqOption('${escapeHtml(q.id)}', ${optIdx})"
+                        class="sr-only" />
+                      ${lbl}
+                    </label>
+                  `).join('')}
+                </div>
+              </div>
+            `;
+            qIndex += 1;
+          });
+          html += `</div>`;
+        }
+
+        if (tfList.length) {
+          html += `<div class="text-xs font-extrabold uppercase tracking-wider text-emerald-800 pt-2">Phiếu trả lời Phần II: Chọn Đúng / Sai (a, b, c, d)</div>`;
+          html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-3">`;
+          tfList.forEach((q) => {
+            const domId = `q-anchor-${qIndex}`;
+            navHtml += `<a href="#${domId}" id="nav-btn-${domId}" class="w-8 h-8 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-700 flex items-center justify-center hover:border-emerald-500">C${qIndex}</a>`;
+            const subLabels = ['a', 'b', 'c', 'd'];
+            html += `
+              <div id="${domId}" class="bg-white rounded-2xl border border-slate-200 p-4 space-y-2">
+                <div class="text-xs font-bold text-emerald-800 uppercase">Câu ${qIndex} • Phần II</div>
+                ${subLabels.map((lbl, sIdx) => `
+                  <div class="flex items-center justify-between gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200">
+                    <span class="text-xs font-bold text-slate-800">Ý ${lbl})</span>
+                    <div class="flex items-center gap-1.5">
+                      <label class="px-2.5 py-1 rounded border border-slate-300 bg-white text-xs font-semibold cursor-pointer has-[:checked]:bg-emerald-700 has-[:checked]:text-white has-[:checked]:border-emerald-700">
+                        <input type="radio" name="tf_${q.id}_${sIdx}" value="true" class="sr-only"
+                          onchange="selectTfOption('${escapeHtml(q.id)}', ${sIdx}, true)" />
+                        Đúng
+                      </label>
+                      <label class="px-2.5 py-1 rounded border border-slate-300 bg-white text-xs font-semibold cursor-pointer has-[:checked]:bg-rose-700 has-[:checked]:text-white has-[:checked]:border-rose-700">
+                        <input type="radio" name="tf_${q.id}_${sIdx}" value="false" class="sr-only"
+                          onchange="selectTfOption('${escapeHtml(q.id)}', ${sIdx}, false)" />
+                        Sai
+                      </label>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            `;
+            qIndex += 1;
+          });
+          html += `</div>`;
+        }
+
+        container.innerHTML = html;
+        navGrid.innerHTML = navHtml;
+        return;
+      }
 
       let html = '';
       let navHtml = '';
@@ -2003,6 +2353,15 @@
       };
     }
 
+    function formatParticipantLabel(record) {
+      const name = String(record.userName || 'Thí sinh').trim();
+      const classSchool = String(record.userClassSchool || '').trim();
+      if (classSchool) {
+        return `${name} — ${classSchool}`;
+      }
+      return name;
+    }
+
     async function submitQuiz() {
       if (quizTimerInterval) {
         clearInterval(quizTimerInterval);
@@ -2034,12 +2393,19 @@
       const rawScore = mcqCorrect * 1.0 + tfPointsSum;
       const score10 = maxRawScore > 0 ? Number(((rawScore / maxRawScore) * 10).toFixed(2)) : 0;
 
+      const isGuest = !currentUser;
+      const guestName = isGuest ? String(currentGuestInfo?.fullName || '').trim() : '';
+      const guestClassSchool = isGuest ? String(currentGuestInfo?.classSchool || '').trim() : '';
+
       const attemptId = `att-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
       const record = {
         id: attemptId,
         timestamp: new Date().toISOString(),
-        userName: currentUser ? currentUser.name : 'Khách (Chưa đăng nhập)',
-        userEmail: currentUser ? currentUser.email : 'guest@local',
+        isGuest,
+        guestSessionId: isGuest ? (currentGuestInfo?.sessionId || '') : '',
+        userName: currentUser ? currentUser.name : (guestName || 'Khách'),
+        userClassSchool: isGuest ? guestClassSchool : '',
+        userEmail: currentUser ? currentUser.email : 'guest@natech.local',
         quizId: activeQuiz.id,
         quizType: activeQuiz.quizType || 'exam',
         quizTitle: activeQuiz.title,
@@ -2069,9 +2435,14 @@
       document.getElementById('resultView').classList.remove('hidden');
 
       const typeLabel = (record.quizType || 'exam') === 'practice' ? 'Bài tập' : 'Đề thi';
+      const participantText = formatParticipantLabel(record);
+      const identityText = record.isGuest
+        ? `${participantText} (Khách)`
+        : `${participantText} (${record.userEmail})`;
+
       document.getElementById('resultQuizTitle').textContent = record.quizTitle;
       document.getElementById('resultMeta').textContent =
-        `Dạng: ${typeLabel} • Thí sinh: ${record.userName} (${record.userEmail}) • Nộp lúc: ${new Date(record.timestamp).toLocaleString('vi-VN')}`;
+        `Dạng: ${typeLabel} • Thí sinh: ${identityText} • Nộp lúc: ${new Date(record.timestamp).toLocaleString('vi-VN')}`;
       document.getElementById('resultScore').textContent = Number(record.score).toFixed(2);
 
       document.getElementById('resultBreakdown').innerHTML = `
@@ -2098,6 +2469,49 @@
       const subLabels = ['a', 'b', 'c', 'd'];
       let out = '';
       let idx = 1;
+
+      if (isWordQuiz(snapshot)) {
+        const mcqList = snapshot.mcqQuestions || [];
+        const tfList = snapshot.tfQuestions || [];
+        if (mcqList.length) {
+          out += `<div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+            <div class="text-xs font-bold uppercase text-indigo-800">Đối chiếu đáp án Phần I (A, B, C, D)</div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2 text-xs">`;
+          mcqList.forEach((q, mIdx) => {
+            const chosen = answers?.mcq?.[q.id];
+            const ok = chosen === Number(q.correctIndex);
+            out += `
+              <div class="p-2.5 rounded-xl border ${ok ? 'border-emerald-300 bg-emerald-100/70' : 'border-rose-300 bg-rose-100/70'}">
+                <div class="font-bold text-slate-900">Câu ${mIdx + 1}</div>
+                <div>Chọn: <strong>${chosen !== undefined ? letters[chosen] : '-'}</strong> | Đúng: <strong>${letters[q.correctIndex]}</strong></div>
+              </div>
+            `;
+          });
+          out += `</div></div>`;
+        }
+        if (tfList.length) {
+          out += `<div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+            <div class="text-xs font-bold uppercase text-emerald-800">Đối chiếu đáp án Phần II (a, b, c, d)</div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">`;
+          tfList.forEach((q, tIdx) => {
+            const res = scoreTfQuestion(q.statements, answers?.tf?.[q.id]);
+            out += `
+              <div class="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-1.5">
+                <div class="font-bold text-slate-900">Câu II.${tIdx + 1} (${res.points} điểm — ${res.matched}/4 ý)</div>
+                ${(q.statements || []).map((st, sIdx) => {
+                  const chosen = answers?.tf?.[q.id]?.[sIdx];
+                  const ok = chosen === st.isTrue;
+                  return `<div class="${ok ? 'text-emerald-900' : 'text-rose-800'}">
+                    <strong>${subLabels[sIdx]})</strong> Chọn: ${chosen === true ? 'Đúng' : chosen === false ? 'Sai' : '-'} | Đáp án: <strong>${st.isTrue ? 'Đúng' : 'Sai'}</strong>
+                  </div>`;
+                }).join('')}
+              </div>
+            `;
+          });
+          out += `</div></div>`;
+        }
+        return out || '<p class="text-sm text-slate-600">Đã lưu kết quả bài làm.</p>';
+      }
 
       (snapshot.mcqQuestions || []).forEach(q => {
         const chosen = answers?.mcq?.[q.id];
@@ -2174,10 +2588,10 @@
 
       if (currentUser && currentUser.isAdmin) {
         searchInput.classList.remove('hidden');
-        subtitle.textContent = 'Chế độ Admin: Xem toàn bộ lịch sử làm bài và chi tiết bài làm của học sinh.';
+        subtitle.textContent = 'Chế độ Admin: Xem toàn bộ lịch sử làm bài (cả tài khoản & Khách) và chi tiết bài làm.';
       } else {
         searchInput.classList.add('hidden');
-        subtitle.textContent = 'Lịch sử làm bài được lưu trữ cố định (học sinh không có quyền xóa lịch sử).';
+        subtitle.textContent = 'Lịch sử làm bài được lưu trữ cố định nhằm đảm bảo tính minh bạch.';
       }
 
       renderHistoryTable();
@@ -2194,17 +2608,20 @@
           if (!query) return true;
           return (
             String(item.userName || '').toLowerCase().includes(query) ||
+            String(item.userClassSchool || '').toLowerCase().includes(query) ||
             String(item.userEmail || '').toLowerCase().includes(query) ||
             String(item.quizTitle || '').toLowerCase().includes(query)
           );
         });
       } else if (currentUser) {
         list = all.filter(item => normalizeEmail(item.userEmail) === currentUser.email);
+      } else if (currentGuestInfo && currentGuestInfo.sessionId) {
+        list = all.filter(item => item.guestSessionId === currentGuestInfo.sessionId);
       } else {
         tbody.innerHTML = `
           <tr>
             <td colspan="7" class="px-4 py-8 text-center text-slate-600">
-              Vui lòng đăng nhập để xem lịch sử làm bài của bạn.
+              Vui lòng nhập họ tên khi làm bài hoặc đăng nhập để xem lịch sử làm bài.
             </td>
           </tr>
         `;
@@ -2222,12 +2639,21 @@
         return;
       }
 
-      tbody.innerHTML = list.map(item => `
+      tbody.innerHTML = list.map(item => {
+        const classSchoolText = String(item.userClassSchool || '').trim();
+        const subLine = item.isGuest
+          ? (classSchoolText ? `Khách • ${classSchoolText}` : 'Khách (Chưa đăng nhập)')
+          : escapeHtml(item.userEmail);
+
+        return `
         <tr class="hover:bg-slate-50">
           <td class="px-4 py-3 text-xs text-slate-600 whitespace-nowrap">${new Date(item.timestamp).toLocaleString('vi-VN')}</td>
           <td class="px-4 py-3">
-            <div class="font-semibold text-slate-900">${escapeHtml(item.userName)}</div>
-            <div class="text-xs text-slate-600">${escapeHtml(item.userEmail)}</div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="font-semibold text-slate-900">${escapeHtml(item.userName)}</span>
+              ${item.isGuest ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-300">Khách</span>` : ''}
+            </div>
+            <div class="text-xs text-slate-600">${escapeHtml(subLine)}</div>
           </td>
           <td class="px-4 py-3 font-medium text-slate-800">
             <div class="flex items-center gap-1.5 flex-wrap">
@@ -2249,15 +2675,20 @@
             </button>
           </td>
         </tr>
-      `).join('');
+      `;
+      }).join('');
     }
 
     function openAttemptDetailModal(attemptId) {
       const record = getHistory().find(h => h.id === attemptId);
       if (!record) return;
+      const participantLabel = formatParticipantLabel(record);
+      const whoText = record.isGuest
+        ? `${participantLabel} (Khách)`
+        : `${participantLabel} (${record.userEmail})`;
       document.getElementById('detailModalTitle').textContent = record.quizTitle;
       document.getElementById('detailModalMeta').textContent =
-        `Học sinh: ${record.userName} (${record.userEmail}) • Điểm: ${Number(record.score).toFixed(2)} • ${new Date(record.timestamp).toLocaleString('vi-VN')}`;
+        `Thí sinh: ${whoText} • Điểm: ${Number(record.score).toFixed(2)} • ${new Date(record.timestamp).toLocaleString('vi-VN')}`;
       document.getElementById('detailModalBody').innerHTML = buildReviewHtml(record.quizSnapshot, record.answers);
       document.getElementById('attemptDetailModal').classList.remove('hidden-modal');
     }
@@ -2267,9 +2698,138 @@
     }
 
     // =========================================================================
-    // 10. QUẢN LÝ ĐỀ THI, TÀI KHOẢN & CẤP QUYỀN ADMIN TRÊN CLOUD
+    // 10. QUẢN LÝ ĐỀ THI (MỌI ADMIN) & CẤP TÀI KHOẢN (CHỈ tunguyenne292k8@gmail.com)
     // =========================================================================
     let editingQuizId = null;
+    let currentEditorMode = 'standard';
+    let currentWordFileName = '';
+
+    function setEditorMode(mode) {
+      currentEditorMode = mode === 'word' ? 'word' : 'standard';
+      const stdBtn = document.getElementById('modeStandardBtn');
+      const wordBtn = document.getElementById('modeWordBtn');
+      const stdSec = document.getElementById('standardEditorSection');
+      const wordSec = document.getElementById('wordEditorSection');
+
+      if (currentEditorMode === 'word') {
+        wordBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-700 text-white transition';
+        stdBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 transition';
+        stdSec.classList.add('hidden');
+        wordSec.classList.remove('hidden');
+        if (!document.getElementById('wordMcqSheetContainer').children.length && !document.getElementById('wordTfSheetContainer').children.length) {
+          syncWordAnswerSheet();
+        }
+      } else {
+        stdBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-700 text-white transition';
+        wordBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 transition';
+        wordSec.classList.add('hidden');
+        stdSec.classList.remove('hidden');
+      }
+    }
+
+    async function handleWordFileUpload(event) {
+      const file = event.target?.files?.[0];
+      if (!file) return;
+
+      const statusEl = document.getElementById('wordFileStatus');
+      const nameBadge = document.getElementById('wordFileNameBadge');
+      statusEl.textContent = 'Đang đọc file Word...';
+
+      try {
+        if (!window.mammoth) {
+          throw new Error('Thư viện đọc file Word chưa tải xong');
+        }
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await window.mammoth.extractRawText({ arrayBuffer });
+        const extracted = String(result.value || '').trim();
+
+        currentWordFileName = file.name;
+        document.getElementById('editorWordDocText').value = extracted;
+        if (!document.getElementById('editorTitle').value.trim()) {
+          document.getElementById('editorTitle').value = file.name.replace(/\.docx$/i, '');
+        }
+        nameBadge.textContent = `File: ${file.name}`;
+        statusEl.textContent = `Đã đọc file (${extracted.length.toLocaleString('vi-VN')} ký tự)`;
+        showToast(`Đã tải nội dung từ ${file.name}`);
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Không đọc được file .docx (hãy thử lưu lại dưới dạng .docx)';
+        showToast('Không thể đọc file Word này. Hãy đảm bảo file có đuôi .docx!', true);
+      }
+    }
+
+    function syncWordAnswerSheet(existingMcq = null, existingTf = null) {
+      const mcqWrap = document.getElementById('wordMcqSheetContainer');
+      const tfWrap = document.getElementById('wordTfSheetContainer');
+      const mcqCount = Math.max(0, Math.min(100, Number(document.getElementById('wordMcqCountInput').value || 0)));
+      const tfCount = Math.max(0, Math.min(40, Number(document.getElementById('wordTfCountInput').value || 0)));
+
+      const prevMcq = existingMcq || Array.from(mcqWrap.querySelectorAll('.word-mcq-row')).map(row => ({
+        correctIndex: Number(row.querySelector('.word-mcq-ans')?.value ?? 0)
+      }));
+      const prevTf = existingTf || Array.from(tfWrap.querySelectorAll('.word-tf-row')).map(row => ({
+        statements: Array.from(row.querySelectorAll('.word-tf-ans')).map(sel => sel.value === 'true')
+      }));
+
+      const letters = ['A', 'B', 'C', 'D'];
+      mcqWrap.innerHTML = Array.from({ length: mcqCount }, (_, idx) => {
+        const cur = Number(prevMcq[idx]?.correctIndex ?? 0);
+        return `
+          <div class="p-2.5 rounded-xl bg-white border border-slate-200 flex items-center justify-between gap-2 word-mcq-row">
+            <span class="text-xs font-bold text-slate-800">Câu ${idx + 1}</span>
+            <select class="px-2 py-1 rounded-lg border border-emerald-300 bg-emerald-100 text-emerald-950 text-xs font-bold word-mcq-ans">
+              ${letters.map((lbl, oIdx) => `<option value="${oIdx}" ${cur === oIdx ? 'selected' : ''}>${lbl}</option>`).join('')}
+            </select>
+          </div>
+        `;
+      }).join('');
+
+      const subLabels = ['a', 'b', 'c', 'd'];
+      tfWrap.innerHTML = Array.from({ length: tfCount }, (_, idx) => {
+        const curSt = prevTf[idx]?.statements || [true, false, true, false];
+        return `
+          <div class="p-3 rounded-xl bg-white border border-slate-200 space-y-2 word-tf-row">
+            <div class="text-xs font-bold text-emerald-800">Phần II • Câu ${idx + 1}</div>
+            <div class="grid grid-cols-4 gap-1.5">
+              ${subLabels.map((lbl, sIdx) => {
+                const isT = Boolean(curSt[sIdx]);
+                return `
+                  <div class="flex flex-col gap-1">
+                    <span class="text-[11px] font-bold text-slate-600 text-center">${lbl})</span>
+                    <select class="px-1.5 py-1 rounded-lg border border-slate-300 text-xs font-bold text-center word-tf-ans">
+                      <option value="true" ${isT ? 'selected' : ''}>Đ</option>
+                      <option value="false" ${!isT ? 'selected' : ''}>S</option>
+                    </select>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function applyAdminPermissionsUI() {
+      const canManageAcc = canManageAccounts();
+      const accountCard = document.getElementById('accountManagementCard');
+      const mainGrid = document.getElementById('adminMainGrid');
+      const leftCol = document.getElementById('adminLeftColumn');
+      const rightCol = document.getElementById('adminRightColumn');
+
+      if (accountCard) {
+        accountCard.classList.toggle('hidden', !canManageAcc);
+      }
+
+      if (mainGrid && leftCol && rightCol) {
+        if (canManageAcc) {
+          leftCol.className = 'lg:col-span-5 space-y-6 h-fit';
+          rightCol.className = 'lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-6';
+        } else {
+          leftCol.className = 'lg:col-span-4 space-y-6 h-fit';
+          rightCol.className = 'lg:col-span-8 bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-6';
+        }
+      }
+    }
 
     function openAdminView() {
       if (!currentUser || !currentUser.isAdmin) {
@@ -2279,8 +2839,11 @@
       }
       hideAllViews();
       document.getElementById('adminView').classList.remove('hidden');
+      applyAdminPermissionsUI();
       renderAdminQuizList();
-      renderStudentAccountsList();
+      if (canManageAccounts()) {
+        renderStudentAccountsList();
+      }
       if (!editingQuizId) {
         resetEditorForNewQuiz();
       }
@@ -2288,8 +2851,8 @@
 
     async function handleCreateStudentAccount(event) {
       event.preventDefault();
-      if (!currentUser || !currentUser.isAdmin) {
-        showToast('Chỉ tài khoản Admin mới có quyền tạo tài khoản.', true);
+      if (!canManageAccounts()) {
+        showToast('Chỉ tài khoản tunguyenne292k8@gmail.com mới có quyền cấp tài khoản.', true);
         return;
       }
 
@@ -2328,14 +2891,14 @@
           salt,
           passwordHash,
           isAdmin: finalIsAdmin,
-          createdBy: currentUser.email,
+          createdBy: PRIMARY_ADMIN_EMAIL,
           createdAt: new Date().toISOString()
         });
 
         document.getElementById('createStudentForm').reset();
         showToast(
           finalIsAdmin
-            ? `Đã tạo tài khoản và cấp quyền Admin cho ${email}`
+            ? `Đã cấp tài khoản Admin (chỉ được tạo đề thi) cho ${email}`
             : `Đã tạo tài khoản học sinh và đồng bộ lên Cloud cho ${email}`
         );
       } catch (err) {
@@ -2345,7 +2908,10 @@
     }
 
     async function toggleUserAdminRole(targetEmail, nextIsAdmin) {
-      if (!currentUser || !currentUser.isAdmin) return;
+      if (!canManageAccounts()) {
+        showToast('Chỉ tài khoản tunguyenne292k8@gmail.com mới có quyền cấp/gỡ Admin.', true);
+        return;
+      }
       const normalized = normalizeEmail(targetEmail);
 
       if (isPrimaryAdminEmail(normalized)) {
@@ -2353,20 +2919,15 @@
         return;
       }
 
-      if (normalized === currentUser.email && !nextIsAdmin) {
-        showToast('Bạn không thể tự gỡ quyền Admin của chính mình.', true);
-        return;
-      }
-
       try {
         await db.collection(COLLECTIONS.USERS).doc(normalized).update({
           isAdmin: Boolean(nextIsAdmin),
-          updatedBy: currentUser.email,
+          updatedBy: PRIMARY_ADMIN_EMAIL,
           updatedAt: new Date().toISOString()
         });
         showToast(
           nextIsAdmin
-            ? `Đã cấp quyền Admin cho ${normalized}`
+            ? `Đã cấp quyền Admin (chỉ được tạo đề thi) cho ${normalized}`
             : `Đã gỡ quyền Admin của ${normalized}`
         );
       } catch (err) {
@@ -2376,7 +2937,10 @@
     }
 
     function openResetStudentPasswordModal(studentEmail) {
-      if (!currentUser || !currentUser.isAdmin) return;
+      if (!canManageAccounts()) {
+        showToast('Chỉ tài khoản tunguyenne292k8@gmail.com mới có quyền cấp lại mật khẩu.', true);
+        return;
+      }
       const normalized = normalizeEmail(studentEmail);
       const user = getUsers().find(u => normalizeEmail(u.email) === normalized);
       if (!user) {
@@ -2396,7 +2960,10 @@
 
     async function handleResetStudentPasswordSubmit(event) {
       event.preventDefault();
-      if (!currentUser || !currentUser.isAdmin) return;
+      if (!canManageAccounts()) {
+        showToast('Chỉ tài khoản tunguyenne292k8@gmail.com mới có quyền cấp lại mật khẩu.', true);
+        return;
+      }
 
       const targetEmail = normalizeEmail(document.getElementById('resetTargetStudentEmail').value);
       const newPw = String(document.getElementById('resetStudentNewPasswordInput').value || '');
@@ -2426,7 +2993,7 @@
           salt: newSalt,
           passwordHash: newHash,
           isAdmin: isAdminEmail(targetEmail, existing),
-          resetBy: currentUser.email,
+          resetBy: PRIMARY_ADMIN_EMAIL,
           resetAt: new Date().toISOString()
         });
 
@@ -2440,14 +3007,13 @@
     }
 
     function confirmDeleteStudentAccount(studentEmail) {
-      if (!currentUser || !currentUser.isAdmin) return;
+      if (!canManageAccounts()) {
+        showToast('Chỉ tài khoản tunguyenne292k8@gmail.com mới có quyền xóa tài khoản.', true);
+        return;
+      }
       const normalized = normalizeEmail(studentEmail);
       if (isPrimaryAdminEmail(normalized)) {
         showToast('Không thể xóa tài khoản Admin gốc.', true);
-        return;
-      }
-      if (normalized === currentUser.email) {
-        showToast('Bạn không thể tự xóa tài khoản đang đăng nhập.', true);
         return;
       }
 
@@ -2472,6 +3038,10 @@
     function renderStudentAccountsList() {
       const wrap = document.getElementById('studentAccountsList');
       if (!wrap) return;
+      if (!canManageAccounts()) {
+        wrap.innerHTML = '';
+        return;
+      }
       const accounts = getUsers().filter(u => !isPrimaryAdminEmail(u.email));
       if (!accounts.length) {
         wrap.innerHTML = `<div class="text-slate-500 italic">Chưa có tài khoản nào được tạo.</div>`;
@@ -2486,7 +3056,7 @@
               <div class="flex items-center gap-1.5">
                 <span class="font-semibold text-slate-800 truncate">${escapeHtml(u.name)}</span>
                 ${isUserAdmin
-                  ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-900 border border-blue-300 shrink-0">Admin</span>`
+                  ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-900 border border-blue-300 shrink-0">Admin (Tạo đề)</span>`
                   : `<span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 shrink-0">Học sinh</span>`}
               </div>
               <div class="text-slate-600 truncate">${safeEmail}</div>
@@ -2524,12 +3094,14 @@
         const statusLabel = (q.examStatus || 'open') === 'open' ? 'Đã mở' : 'Chưa mở';
         const typeLabel = (q.quizType || 'exam') === 'practice' ? 'Bài tập' : 'Đề thi';
         const orderedTags = sortTagsByPriority(q.tags);
+        const wordMode = isWordQuiz(q);
         return `
           <div class="p-3.5 rounded-xl border border-slate-200 flex items-center justify-between gap-3">
             <div class="min-w-0 space-y-1">
               <div class="text-sm font-bold text-slate-900 truncate">${escapeHtml(q.title)}</div>
               <div class="flex items-center gap-1.5 flex-wrap text-xs text-slate-600">
                 <span>${typeLabel}</span>
+                ${wordMode ? `<span>•</span><span class="font-semibold text-indigo-800">File Word</span>` : ''}
                 <span>•</span>
                 <span>${escapeHtml(q.subject)}</span>
                 <span>•</span>
@@ -2556,6 +3128,7 @@
 
     function resetEditorForNewQuiz() {
       editingQuizId = null;
+      currentWordFileName = '';
       document.getElementById('editorHeading').textContent = 'Tạo Mới';
       document.getElementById('editorTitle').value = '';
       document.getElementById('editorQuizType').value = 'exam';
@@ -2565,10 +3138,21 @@
       document.getElementById('editorDuration').value = '15';
       document.getElementById('editorDescription').value = '';
       document.querySelectorAll('.editor-tag-checkbox').forEach(cb => { cb.checked = false; });
+
+      document.getElementById('editorWordFileInput').value = '';
+      document.getElementById('editorWordExternalUrl').value = '';
+      document.getElementById('editorWordDocText').value = '';
+      document.getElementById('wordFileStatus').textContent = 'Chưa chọn file Word';
+      document.getElementById('wordFileNameBadge').textContent = '';
+      document.getElementById('wordMcqCountInput').value = '10';
+      document.getElementById('wordTfCountInput').value = '2';
+      syncWordAnswerSheet();
+
       document.getElementById('editorMcqList').innerHTML = '';
       document.getElementById('editorTfList').innerHTML = '';
       addEditorMcqQuestion();
       addEditorTfQuestion();
+      setEditorMode('standard');
     }
 
     function loadQuizIntoEditor(quizId) {
@@ -2589,13 +3173,31 @@
         cb.checked = qTags.includes(cb.value);
       });
 
-      const mcqWrap = document.getElementById('editorMcqList');
-      mcqWrap.innerHTML = '';
-      (q.mcqQuestions || []).forEach(item => addEditorMcqQuestion(item));
+      if (isWordQuiz(q)) {
+        currentWordFileName = q.wordFileName || '';
+        document.getElementById('editorWordExternalUrl').value = q.wordExternalUrl || '';
+        document.getElementById('editorWordDocText').value = q.wordDocText || '';
+        document.getElementById('wordFileNameBadge').textContent = currentWordFileName ? `File: ${currentWordFileName}` : '';
+        document.getElementById('wordFileStatus').textContent = currentWordFileName ? `Đã tải: ${currentWordFileName}` : 'Chế độ file Word';
+        const mcqList = q.mcqQuestions || [];
+        const tfList = q.tfQuestions || [];
+        document.getElementById('wordMcqCountInput').value = String(mcqList.length);
+        document.getElementById('wordTfCountInput').value = String(tfList.length);
+        syncWordAnswerSheet(
+          mcqList.map(m => ({ correctIndex: m.correctIndex })),
+          tfList.map(t => ({ statements: (t.statements || []).map(s => Boolean(s.isTrue)) }))
+        );
+        setEditorMode('word');
+      } else {
+        const mcqWrap = document.getElementById('editorMcqList');
+        mcqWrap.innerHTML = '';
+        (q.mcqQuestions || []).forEach(item => addEditorMcqQuestion(item));
 
-      const tfWrap = document.getElementById('editorTfList');
-      tfWrap.innerHTML = '';
-      (q.tfQuestions || []).forEach(item => addEditorTfQuestion(item));
+        const tfWrap = document.getElementById('editorTfList');
+        tfWrap.innerHTML = '';
+        (q.tfQuestions || []).forEach(item => addEditorTfQuestion(item));
+        setEditorMode('standard');
+      }
     }
 
     function addEditorMcqQuestion(data = null) {
@@ -2710,6 +3312,77 @@
         return;
       }
 
+      const quizId = editingQuizId || `quiz-${Date.now()}`;
+
+      if (currentEditorMode === 'word') {
+        const wordDocText = document.getElementById('editorWordDocText').value.trim();
+        const wordExternalUrl = document.getElementById('editorWordExternalUrl').value.trim();
+
+        if (!wordDocText && !wordExternalUrl) {
+          showToast('Vui lòng tải file Word (.docx), dán nội dung đề hoặc nhập link file Word.', true);
+          return;
+        }
+
+        const mcqQuestions = Array.from(document.querySelectorAll('#wordMcqSheetContainer .word-mcq-row')).map((row, idx) => {
+          const correctIndex = Number(row.querySelector('.word-mcq-ans')?.value ?? 0);
+          return {
+            id: `w-mcq-${idx + 1}`,
+            prompt: `Câu ${idx + 1}`,
+            options: ['A', 'B', 'C', 'D'],
+            correctIndex,
+            explanation: ''
+          };
+        });
+
+        const tfQuestions = Array.from(document.querySelectorAll('#wordTfSheetContainer .word-tf-row')).map((row, idx) => {
+          const subLabels = ['a', 'b', 'c', 'd'];
+          const bools = Array.from(row.querySelectorAll('.word-tf-ans'));
+          return {
+            id: `w-tf-${idx + 1}`,
+            prompt: `Câu II.${idx + 1}`,
+            statements: subLabels.map((lbl, sIdx) => ({
+              text: `Ý ${lbl})`,
+              isTrue: bools[sIdx]?.value === 'true'
+            })),
+            explanation: ''
+          };
+        });
+
+        if (!mcqQuestions.length && !tfQuestions.length) {
+          showToast('Cần có ít nhất 1 câu ở phiếu đáp án Phần I hoặc Phần II.', true);
+          return;
+        }
+
+        const quizObj = {
+          id: quizId,
+          quizFormat: 'word',
+          wordFileName: currentWordFileName || '',
+          wordExternalUrl,
+          wordDocText,
+          title,
+          quizType,
+          subject,
+          accessMode,
+          examStatus,
+          tags,
+          description: description || `Đề file Word môn ${subject}`,
+          durationMinutes,
+          mcqQuestions,
+          tfQuestions,
+          updatedAt: new Date().toISOString()
+        };
+
+        try {
+          await db.collection(COLLECTIONS.QUIZZES).doc(quizId).set(quizObj);
+          editingQuizId = quizId;
+          showToast('Đã lưu đề file Word lên Cloud!');
+        } catch (err) {
+          console.error(err);
+          showToast('Lỗi lưu lên Firestore. Kiểm tra quyền Rules!', true);
+        }
+        return;
+      }
+
       const mcqQuestions = [];
       document.querySelectorAll('#editorMcqList .editor-mcq-item').forEach((card, idx) => {
         const prompt = card.querySelector('.mcq-prompt').value.trim();
@@ -2754,9 +3427,9 @@
         return;
       }
 
-      const quizId = editingQuizId || `quiz-${Date.now()}`;
       const quizObj = {
         id: quizId,
+        quizFormat: 'standard',
         title,
         quizType,
         subject,
@@ -2838,6 +3511,22 @@
         }
       } catch (e) {
         currentUser = null;
+      }
+
+      try {
+        const savedGuest = localStorage.getItem(GUEST_INFO_STORAGE_KEY);
+        if (savedGuest) {
+          const parsedGuest = JSON.parse(savedGuest);
+          if (parsedGuest && String(parsedGuest.fullName || '').trim()) {
+            currentGuestInfo = {
+              fullName: String(parsedGuest.fullName).trim(),
+              classSchool: String(parsedGuest.classSchool || '').trim(),
+              sessionId: parsedGuest.sessionId || `guest-${Date.now()}`
+            };
+          }
+        }
+      } catch (e) {
+        currentGuestInfo = null;
       }
 
       updateAuthUI();
