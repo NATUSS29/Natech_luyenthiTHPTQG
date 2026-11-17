@@ -139,7 +139,6 @@
       background: #ffffff;
     }
 
-    /* Trạng thái nổi bật đáp án đã chọn */
     .opt-pill-selected {
       background-color: #1d4ed8 !important;
       border-color: #1e3a8a !important;
@@ -754,7 +753,7 @@
           <div class="flex items-center justify-between gap-2 pb-4 border-b border-slate-200">
             <div>
               <h3 id="editorHeading" class="text-xl font-bold text-slate-900">Tạo Mới</h3>
-              <p class="text-xs text-slate-600">Tạo chuẩn câu hỏi hoặc up file Word (.docx) / PDF xem cả hình ảnh + phiếu đáp án</p>
+              <p class="text-xs text-slate-600">Tạo chuẩn câu hỏi hoặc up file Word (.docx) / PDF kèm hình ảnh (tự nén &lt; 1MB Firestore)</p>
             </div>
             <button type="button" onclick="saveCurrentQuizFromEditor()"
               class="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-semibold transition">
@@ -762,7 +761,6 @@
             </button>
           </div>
 
-          <!-- Chọn chế độ tạo đề -->
           <div class="p-3.5 rounded-2xl bg-blue-50/80 border border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <div class="text-xs font-extrabold uppercase tracking-wider text-blue-950">Chế độ tạo đề</div>
@@ -937,7 +935,6 @@
                   class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
               </div>
 
-              <!-- Xem trước danh sách hình ảnh trích xuất từ Word / PDF / URL -->
               <div id="editorWordImagesPreviewWrap" class="hidden space-y-2">
                 <div class="flex items-center justify-between">
                   <span id="editorWordImagesCountLabel" class="text-xs font-bold text-blue-900"></span>
@@ -1325,9 +1322,61 @@
     let remainingSeconds = 0;
     let pendingConfirmCallback = null;
     let mobileWordViewMode = 'both';
-
-    // Lưu trữ hình ảnh đã trích xuất từ file Word (.docx) hoặc PDF (.pdf)
     let extractedWordImages = [];
+
+    // =========================================================================
+    // NÉN & GIỚI HẠN DUNG LƯỢNG ẢNH ĐỂ KHÔNG VƯỢT 1MB CỦA FIRESTORE
+    // =========================================================================
+    async function compressImageSource(src, maxWidth = 900, quality = 0.55) {
+      if (!src || typeof src !== 'string') return '';
+      const trimmed = src.trim();
+      if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+        return trimmed;
+      }
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > maxWidth) {
+            height = Math.max(1, Math.round((height * maxWidth) / width));
+            width = maxWidth;
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, width, height);
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = () => resolve('');
+        img.src = trimmed;
+      });
+    }
+
+    async function fitImagesUnderFirestoreLimit(rawImages, maxTotalChars = 720000) {
+      const list = parseImageLines(rawImages);
+      const result = [];
+      let totalChars = 0;
+      let truncated = false;
+
+      for (const item of list) {
+        const compressed = await compressImageSource(item, 880, 0.52);
+        if (!compressed) continue;
+        if (totalChars + compressed.length > maxTotalChars) {
+          truncated = true;
+          break;
+        }
+        result.push(compressed);
+        totalChars += compressed.length;
+      }
+
+      if (truncated) {
+        showToast('Đã tự động giới hạn số lượng/kích thước ảnh để không vượt 1MB của Firestore.', true);
+      }
+      return result;
+    }
 
     function openImageLightbox(src, caption = 'Hình ảnh đề thi') {
       if (!src) return;
@@ -3313,7 +3362,7 @@
       const statusEl = document.getElementById('wordFileStatus');
       const nameBadge = document.getElementById('wordFileNameBadge');
       const lowerName = file.name.toLowerCase();
-      statusEl.textContent = 'Đang đọc file & trích xuất hình ảnh...';
+      statusEl.textContent = 'Đang đọc file & nén hình ảnh...';
       extractedWordImages = [];
 
       try {
@@ -3330,13 +3379,15 @@
           for (let p = 1; p <= totalPages; p++) {
             statusEl.textContent = `Đang render trang PDF ${p}/${totalPages}...`;
             const page = await pdfDoc.getPage(p);
-            const viewport = page.getViewport({ scale: 1.35 });
+            const viewport = page.getViewport({ scale: 1.0 });
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             canvas.width = Math.floor(viewport.width);
             canvas.height = Math.floor(viewport.height);
             await page.render({ canvasContext: ctx, viewport }).promise;
-            pageImages.push(canvas.toDataURL('image/jpeg', 0.82));
+            const rawPageDataUrl = canvas.toDataURL('image/jpeg', 0.55);
+            const compressedPage = await compressImageSource(rawPageDataUrl, 880, 0.52);
+            if (compressedPage) pageImages.push(compressedPage);
 
             try {
               const txtContent = await page.getTextContent();
@@ -3345,16 +3396,16 @@
             } catch (e) {}
           }
 
-          extractedWordImages = pageImages;
+          extractedWordImages = await fitImagesUnderFirestoreLimit(pageImages, 720000);
           currentWordFileName = file.name;
           document.getElementById('editorWordDocText').value = textChunks.join('\n\n');
           if (!document.getElementById('editorTitle').value.trim()) {
             document.getElementById('editorTitle').value = file.name.replace(/\.pdf$/i, '');
           }
           nameBadge.textContent = `File PDF: ${file.name}`;
-          statusEl.textContent = `Đã tải PDF (${totalPages} trang ảnh)`;
+          statusEl.textContent = `Đã tải PDF (${extractedWordImages.length}/${totalPages} trang ảnh)`;
           renderEditorWordImagePreview();
-          showToast(`Đã tải PDF ${file.name} (${totalPages} trang ảnh)`);
+          showToast(`Đã tải PDF ${file.name} (${extractedWordImages.length} trang ảnh)`);
           return;
         }
 
@@ -3364,15 +3415,16 @@
         const arrayBuffer = await file.arrayBuffer();
         const foundImgs = [];
 
-        const htmlResult = await window.mammoth.convertToHtml(
+        await window.mammoth.convertToHtml(
           { arrayBuffer },
           {
             convertImage: window.mammoth.images.imgElement((image) => {
-              return image.read('base64').then((imageBuffer) => {
+              return image.read('base64').then(async (imageBuffer) => {
                 const contentType = image.contentType || 'image/png';
-                const dataUrl = `data:${contentType};base64,${imageBuffer}`;
-                foundImgs.push(dataUrl);
-                return { src: dataUrl };
+                const rawDataUrl = `data:${contentType};base64,${imageBuffer}`;
+                const compressed = await compressImageSource(rawDataUrl, 880, 0.52);
+                if (compressed) foundImgs.push(compressed);
+                return { src: compressed || rawDataUrl };
               });
             })
           }
@@ -3381,16 +3433,16 @@
         const textResult = await window.mammoth.extractRawText({ arrayBuffer });
         const extracted = String(textResult.value || '').trim();
 
-        extractedWordImages = foundImgs;
+        extractedWordImages = await fitImagesUnderFirestoreLimit(foundImgs, 720000);
         currentWordFileName = file.name;
         document.getElementById('editorWordDocText').value = extracted;
         if (!document.getElementById('editorTitle').value.trim()) {
           document.getElementById('editorTitle').value = file.name.replace(/\.docx$/i, '');
         }
         nameBadge.textContent = `File Word: ${file.name}`;
-        statusEl.textContent = `Đã đọc file (${extracted.length.toLocaleString('vi-VN')} ký tự, ${foundImgs.length} ảnh)`;
+        statusEl.textContent = `Đã đọc file (${extracted.length.toLocaleString('vi-VN')} ký tự, ${extractedWordImages.length} ảnh)`;
         renderEditorWordImagePreview();
-        showToast(`Đã tải ${file.name} (${foundImgs.length} ảnh)`);
+        showToast(`Đã tải ${file.name} (${extractedWordImages.length} ảnh)`);
       } catch (err) {
         console.error(err);
         statusEl.textContent = 'Không đọc được file (hãy thử file .docx hoặc .pdf)';
@@ -4029,7 +4081,7 @@
         const wordDocText = document.getElementById('editorWordDocText').value.trim();
         const wordExternalUrl = document.getElementById('editorWordExternalUrl').value.trim();
         const manualImgs = parseImageLines(document.getElementById('editorWordImageUrls').value);
-        const wordImages = [...extractedWordImages, ...manualImgs];
+        const wordImages = await fitImagesUnderFirestoreLimit([...extractedWordImages, ...manualImgs], 720000);
 
         if (!wordDocText && !wordExternalUrl && !wordImages.length) {
           showToast('Vui lòng tải file Word (.docx), PDF (.pdf), thêm ảnh hoặc nhập nội dung đề.', true);
@@ -4106,20 +4158,20 @@
           showToast('Đã lưu đề Word/PDF & hình ảnh lên Cloud!');
         } catch (err) {
           console.error(err);
-          showToast('Lỗi lưu lên Firestore (nếu ảnh lớn có thể vượt giới hạn 1MB/doc — hãy dùng link ảnh hoặc nén PDF).', true);
+          showToast('Lỗi lưu lên Firestore (vượt giới hạn 1MB/document — hãy dùng link ảnh hoặc giảm số trang).', true);
         }
         return;
       }
 
       const mcqQuestions = [];
-      document.querySelectorAll('#editorMcqList .editor-mcq-item').forEach((card, idx) => {
+      for (const [idx, card] of Array.from(document.querySelectorAll('#editorMcqList .editor-mcq-item')).entries()) {
         const prompt = card.querySelector('.mcq-prompt').value.trim();
-        const images = parseImageLines(card.querySelector('.mcq-images')?.value || '');
+        const images = await fitImagesUnderFirestoreLimit(card.querySelector('.mcq-images')?.value || '', 250000);
         const optInputs = Array.from(card.querySelectorAll('.mcq-opt'));
         const correctSelect = card.querySelector('.mcq-correct-select');
         const correctInputs = Array.from(card.querySelectorAll('.mcq-correct'));
         const explanation = card.querySelector('.mcq-expl').value.trim();
-        if (!prompt && !images.length) return;
+        if (!prompt && !images.length) continue;
         const options = optInputs.map(inp => inp.value.trim() || 'Lựa chọn');
         let correctIndex = correctSelect ? Number(correctSelect.value) : correctInputs.findIndex(r => r.checked);
         if (Number.isNaN(correctIndex) || correctIndex < 0 || correctIndex > 3) correctIndex = 0;
@@ -4131,16 +4183,16 @@
           correctIndex,
           explanation
         });
-      });
+      }
 
       const tfQuestions = [];
-      document.querySelectorAll('#editorTfList .editor-tf-item').forEach((card, idx) => {
+      for (const [idx, card] of Array.from(document.querySelectorAll('#editorTfList .editor-tf-item')).entries()) {
         const prompt = card.querySelector('.tf-prompt').value.trim();
-        const images = parseImageLines(card.querySelector('.tf-images')?.value || '');
+        const images = await fitImagesUnderFirestoreLimit(card.querySelector('.tf-images')?.value || '', 250000);
         const texts = Array.from(card.querySelectorAll('.tf-st-text'));
         const bools = Array.from(card.querySelectorAll('.tf-st-bool'));
         const explanation = card.querySelector('.tf-expl').value.trim();
-        if (!prompt && !images.length) return;
+        if (!prompt && !images.length) continue;
         const statements = texts.map((tInp, sIdx) => ({
           text: tInp.value.trim() || `Mệnh đề ${sIdx + 1}`,
           isTrue: bools[sIdx]?.value === 'true'
@@ -4152,15 +4204,15 @@
           statements,
           explanation
         });
-      });
+      }
 
       const shortQuestions = [];
-      document.querySelectorAll('#editorShortList .editor-short-item').forEach((card, idx) => {
+      for (const [idx, card] of Array.from(document.querySelectorAll('#editorShortList .editor-short-item')).entries()) {
         const prompt = card.querySelector('.short-prompt').value.trim();
-        const images = parseImageLines(card.querySelector('.short-images')?.value || '');
+        const images = await fitImagesUnderFirestoreLimit(card.querySelector('.short-images')?.value || '', 250000);
         const answer = card.querySelector('.short-answer').value.trim();
         const explanation = card.querySelector('.short-expl').value.trim();
-        if (!prompt && !images.length) return;
+        if (!prompt && !images.length) continue;
         shortQuestions.push({
           id: `sa-${Date.now()}-${idx}`,
           prompt: prompt || `Câu III.${idx + 1}`,
@@ -4168,7 +4220,7 @@
           answer,
           explanation
         });
-      });
+      }
 
       if (!mcqQuestions.length && !tfQuestions.length && !shortQuestions.length) {
         showToast('Cần có ít nhất 1 câu hỏi ở Phần I, Phần II hoặc Phần III.', true);
@@ -4198,7 +4250,7 @@
         showToast('Đã lưu lên Cloud (mọi thiết bị đã cập nhật)!');
       } catch (err) {
         console.error(err);
-        showToast('Lỗi lưu lên Firestore. Kiểm tra quyền Rules!', true);
+        showToast('Lỗi lưu lên Firestore (vượt 1MB/document — hãy dùng link ảnh ngoài).', true);
       }
     }
 
