@@ -14,9 +14,8 @@
       display: none !important;
     }
 
-    /* Hiển thị 1 ảnh lớn trên 1 hàng riêng cho từng câu & đề Word/PDF */
-    .single-question-image,
-    .word-single-page-image {
+    /* Hiển thị 1 ảnh lớn trên 1 hàng riêng cho từng câu */
+    .single-question-image {
       display: block;
       width: 100%;
       max-width: 820px;
@@ -27,6 +26,55 @@
       border-radius: 0.75rem;
       cursor: zoom-in;
       background: #ffffff;
+    }
+
+    /* Khung lăn chuột kiểu iframe cho ảnh đề Word / PDF */
+    .word-iframe-scroll-frame {
+      width: 100%;
+      height: 660px;
+      max-height: 76vh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 0.875rem;
+      border: 1px solid #cbd5e1;
+      background: #e2e8f0;
+      padding: 0.875rem;
+      scroll-behavior: smooth;
+    }
+
+    .word-iframe-scroll-frame::-webkit-scrollbar {
+      width: 9px;
+    }
+
+    .word-iframe-scroll-frame::-webkit-scrollbar-track {
+      background: #f1f5f9;
+      border-radius: 9999px;
+    }
+
+    .word-iframe-scroll-frame::-webkit-scrollbar-thumb {
+      background: #64748b;
+      border-radius: 9999px;
+      border: 2px solid #f1f5f9;
+    }
+
+    .word-iframe-scroll-frame::-webkit-scrollbar-thumb:hover {
+      background: #2563eb;
+    }
+
+    .word-scroll-page-img {
+      display: block;
+      width: 100%;
+      max-width: 980px;
+      height: auto;
+      margin: 0 auto;
+      border-radius: 0.75rem;
+      cursor: zoom-in;
+      background: #ffffff;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+      user-select: none;
+      -webkit-user-drag: none;
     }
 
     .word-doc-viewer {
@@ -75,11 +123,16 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
       <div class="flex items-center gap-2.5 min-w-0">
         <button type="button" onclick="goHome()" class="flex items-center gap-2.5 text-left min-w-0">
-          <span class="w-9 h-9 rounded-xl bg-indigo-700 text-white font-extrabold flex items-center justify-center shrink-0">N</span>
+        <img
+        id="natechLogoImg"
+        src="./logo.png"
+        alt="Logo Natech VN"
+        class="w-10 h-10 rounded-xl object-cover shrink-0 shadow-sm border border-blue-200 bg-blue-600"
+        />
           <div class="min-w-0">
             <div class="flex items-center gap-2">
               <span class="font-extrabold text-slate-900 text-base sm:text-lg truncate">Natech VN</span>
-              <span id="adminBadge" class="hidden px-2 py-0.5 rounded-full text-[11px] font-bold bg-indigo-100 text-indigo-900 border border-indigo-300">Super Admin</span>
+              <span id="adminBadge" class="hidden px-2 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-900 border border-blue-300">Super Admin</span>
               <span id="cloudSyncBadge" class="hidden sm:inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300">Đang kết nối...</span>
             </div>
           </div>
@@ -93,13 +146,13 @@
         </button>
 
         <button id="btnAdminNav" type="button" onclick="openAdminView()"
-          class="hidden items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-indigo-100 hover:bg-indigo-200 text-indigo-900 transition">
+          class="hidden items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-blue-100 hover:bg-blue-200 text-blue-950 transition">
           <span id="btnAdminNavLabel">Quản lý đề &amp; Tài khoản</span>
         </button>
 
         <div id="authGuestBox">
           <button type="button" onclick="openAuthModal()"
-            class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-indigo-700 hover:bg-indigo-800 text-white transition">
+            class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-blue-700 hover:bg-blue-800 text-white transition">
             Đăng nhập
           </button>
         </div>
@@ -107,7 +160,7 @@
         <div id="authUserBox" class="hidden items-center gap-2 relative">
           <button type="button" onclick="toggleMobileMenu(event)"
             class="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 transition">
-            <span id="userAvatar" class="w-7 h-7 rounded-lg bg-indigo-700 text-white text-xs font-bold flex items-center justify-center">N</span>
+            <span id="userAvatar" class="w-7 h-7 rounded-lg bg-blue-700 text-white text-xs font-bold flex items-center justify-center">N</span>
             <span class="hidden sm:block text-left max-w-[140px]">
               <span id="userDisplayName" class="block text-xs font-bold text-slate-900 truncate"></span>
               <span id="userDisplayEmail" class="block text-[10px] text-slate-500 truncate"></span>
@@ -120,7 +173,7 @@
               <div id="mobileMenuUserEmail" class="text-[11px] text-slate-500 truncate"></div>
             </div>
             <button id="mobileAdminMenuBtn" type="button" onclick="closeMobileMenu(); openAdminView();"
-              class="hidden w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-indigo-900 hover:bg-indigo-50">
+              class="hidden w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-blue-950 hover:bg-blue-50">
               Quản lý đề &amp; Tài khoản
             </button>
             <button type="button" onclick="closeMobileMenu(); openChangePasswordModal();"
@@ -153,7 +206,7 @@
           </div>
           <div class="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
             <div class="text-[11px] text-slate-500">Điểm TB</div>
-            <div id="statAvgScore" class="text-base font-extrabold text-indigo-800">0.00</div>
+            <div id="statAvgScore" class="text-base font-extrabold text-blue-800">0.00</div>
           </div>
           <div class="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200">
             <div class="text-[11px] text-slate-500">Cao nhất</div>
@@ -167,7 +220,7 @@
         <div class="flex items-center justify-between gap-2">
           <input id="quizSearchInput" type="text" oninput="renderQuizList()"
             placeholder="Tìm theo tên đề, môn học, mô tả..."
-            class="w-full sm:max-w-sm px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            class="w-full sm:max-w-sm px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           <div class="flex items-center gap-2">
             <button type="button" onclick="toggleMobileFilterPanel()"
               class="sm:hidden px-3 py-2 rounded-xl bg-slate-100 text-xs font-semibold text-slate-800">
@@ -233,7 +286,7 @@
 
         <div class="flex items-center gap-2 flex-wrap">
           <span id="detailQuizTypeBadge"></span>
-          <span id="detailQuizSubject" class="px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-200"></span>
+          <span id="detailQuizSubject" class="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-900 border border-blue-200"></span>
           <span id="detailQuizStatusBadge" class="px-2.5 py-1 rounded-full text-xs font-semibold"></span>
           <span id="detailQuizAccessBadge"></span>
         </div>
@@ -256,7 +309,7 @@
 
         <div class="pt-2">
           <button id="detailStartQuizBtn" type="button"
-            class="w-full sm:w-auto px-6 py-3 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white text-sm font-semibold transition">
+            class="w-full sm:w-auto px-6 py-3 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold transition">
             Bắt đầu làm bài
           </button>
         </div>
@@ -271,7 +324,7 @@
             <div class="flex items-center gap-1.5 flex-wrap">
               <span id="activeQuizTopTags" class="flex items-center gap-1.5 flex-wrap"></span>
               <span id="activeQuizTypeBadge"></span>
-              <span id="activeQuizSubject" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800"></span>
+              <span id="activeQuizSubject" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-900"></span>
             </div>
             <h2 id="activeQuizTitle" class="text-lg sm:text-xl font-extrabold text-slate-900"></h2>
             <p id="activeQuizMeta" class="text-xs text-slate-600"></p>
@@ -302,12 +355,12 @@
             <span id="progressPercent">0%</span>
           </div>
           <div class="w-full h-2 rounded-full bg-slate-200 overflow-hidden">
-            <div id="progressBar" class="h-full bg-indigo-700 transition-all" style="width: 0%"></div>
+            <div id="progressBar" class="h-full bg-blue-700 transition-all" style="width: 0%"></div>
           </div>
         </div>
 
         <div id="mobileWordTabBar" class="hidden grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-slate-100 sm:hidden">
-          <button id="tabWordBothBtn" type="button" onclick="setMobileWordViewMode('both')" class="py-1.5 rounded-lg text-xs font-bold bg-indigo-700 text-white">Cả hai</button>
+          <button id="tabWordBothBtn" type="button" onclick="setMobileWordViewMode('both')" class="py-1.5 rounded-lg text-xs font-bold bg-blue-700 text-white">Cả hai</button>
           <button id="tabWordDocBtn" type="button" onclick="setMobileWordViewMode('doc')" class="py-1.5 rounded-lg text-xs font-semibold text-slate-700">Xem đề</button>
           <button id="tabWordSheetBtn" type="button" onclick="setMobileWordViewMode('sheet')" class="py-1.5 rounded-lg text-xs font-semibold text-slate-700">Phiếu trả lời</button>
         </div>
@@ -319,7 +372,7 @@
           <div class="text-xs font-extrabold uppercase tracking-wider text-slate-700">Mục lục câu hỏi</div>
           <div id="questionNavGrid" class="flex flex-wrap gap-1.5"></div>
           <button type="button" onclick="confirmSubmitQuiz()"
-            class="w-full py-2.5 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-bold">
+            class="w-full py-2.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold">
             Nộp bài ngay
           </button>
         </aside>
@@ -331,13 +384,13 @@
       <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-7 space-y-5">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <span class="text-xs font-bold uppercase text-indigo-700">Kết quả bài làm</span>
+            <span class="text-xs font-bold uppercase text-blue-700">Kết quả bài làm</span>
             <h2 id="resultQuizTitle" class="text-xl font-extrabold text-slate-900 mt-0.5"></h2>
             <p id="resultMeta" class="text-xs text-slate-600 mt-1"></p>
           </div>
-          <div class="px-5 py-3 rounded-2xl bg-indigo-50 border border-indigo-200 text-center">
-            <div class="text-xs font-semibold text-indigo-800">Điểm số</div>
-            <div id="resultScore" class="text-2xl font-extrabold text-indigo-900">0.00</div>
+          <div class="px-5 py-3 rounded-2xl bg-blue-50 border border-blue-200 text-center">
+            <div class="text-xs font-semibold text-blue-800">Điểm số</div>
+            <div id="resultScore" class="text-2xl font-extrabold text-blue-900">0.00</div>
           </div>
         </div>
 
@@ -345,7 +398,7 @@
 
         <div class="flex items-center gap-2 flex-wrap">
           <button type="button" onclick="goHome()"
-            class="px-4 py-2.5 rounded-xl bg-indigo-700 text-white text-xs font-bold">
+            class="px-4 py-2.5 rounded-xl bg-blue-700 text-white text-xs font-bold">
             Về trang chủ
           </button>
           <button type="button" onclick="openHistoryView()"
@@ -400,11 +453,11 @@
       <div class="bg-white rounded-2xl border border-slate-200 p-5 flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">Khu vực quản trị</h2>
-          <p class="text-xs text-slate-600 mt-0.5">Soạn từng câu (1 ảnh/câu &lt; 1MB) hoặc tải đề Word/PDF (xem 1 ảnh lớn đầu tiên).</p>
+          <p class="text-xs text-slate-600 mt-0.5">Soạn từng câu (1 ảnh/câu &lt; 1MB) hoặc tải đề Word/PDF (khung ảnh lăn chuột kiểu iframe).</p>
         </div>
         <div class="flex items-center gap-2">
           <button type="button" onclick="resetEditorForNewQuiz()"
-            class="px-3.5 py-2 rounded-xl bg-indigo-100 hover:bg-indigo-200 text-indigo-900 text-xs font-bold">
+            class="px-3.5 py-2 rounded-xl bg-blue-100 hover:bg-blue-200 text-blue-950 text-xs font-bold">
             + Tạo mới
           </button>
           <button type="button" onclick="goHome()"
@@ -427,12 +480,12 @@
               <input id="studentPasswordInput" type="password" placeholder="Mật khẩu (tối thiểu 6 ký tự)" required
                 class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs" />
               <label class="flex items-center gap-2 text-xs text-slate-700">
-                <input id="studentGrantAdminCheckbox" type="checkbox" class="accent-indigo-700" />
+                <input id="studentGrantAdminCheckbox" type="checkbox" class="accent-blue-700" />
                 <span>Cấp quyền Admin (chỉ tạo đề)</span>
               </label>
               <p id="studentCreateError" class="hidden text-xs text-rose-700 font-medium"></p>
               <button type="submit"
-                class="w-full py-2 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-bold">
+                class="w-full py-2 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold">
                 Tạo tài khoản
               </button>
             </form>
@@ -452,7 +505,7 @@
             <h3 id="editorHeading" class="text-base sm:text-lg font-extrabold text-slate-900">Tạo Mới</h3>
             <div class="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200">
               <button id="modeStandardBtn" type="button" onclick="setEditorMode('standard')"
-                class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-700 text-white transition">
+                class="px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-700 text-white transition">
                 Soạn từng câu (1 ảnh/câu)
               </button>
               <button id="modeWordBtn" type="button" onclick="setEditorMode('word')"
@@ -526,9 +579,9 @@
           <div id="standardEditorSection" class="space-y-5">
             <div class="space-y-3">
               <div class="flex items-center justify-between">
-                <h4 class="text-sm font-extrabold text-indigo-900">Phần I: Trắc nghiệm (A, B, C, D)</h4>
+                <h4 class="text-sm font-extrabold text-blue-950">Phần I: Trắc nghiệm (A, B, C, D)</h4>
                 <button type="button" onclick="addEditorMcqQuestion()"
-                  class="px-3 py-1.5 rounded-lg bg-indigo-100 hover:bg-indigo-200 text-indigo-900 text-xs font-bold">
+                  class="px-3 py-1.5 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-950 text-xs font-bold">
                   + Thêm câu P.I
                 </button>
               </div>
@@ -563,11 +616,11 @@
             <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
               <div class="flex items-center justify-between gap-2 flex-wrap">
                 <span class="text-xs font-bold text-slate-800">Tải file Word (.docx) hoặc PDF (.pdf)</span>
-                <span id="wordFileNameBadge" class="text-xs font-semibold text-indigo-800"></span>
+                <span id="wordFileNameBadge" class="text-xs font-semibold text-blue-900"></span>
               </div>
               <input id="editorWordFileInput" type="file" accept=".docx,.pdf,application/pdf"
                 onchange="handleDocOrPdfFileUpload(event)"
-                class="block w-full text-xs text-slate-700 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-100 file:text-indigo-900" />
+                class="block w-full text-xs text-slate-700 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-100 file:text-blue-950" />
               <div id="wordFileStatus" class="text-xs text-slate-600">Chưa chọn file Word / PDF</div>
 
               <input id="editorWordExternalUrl" type="url" placeholder="Link file gốc tùy chọn (https://...)"
@@ -584,14 +637,8 @@
               </div>
 
               <div id="editorWordImagesPreviewWrap" class="hidden space-y-2">
-                <div id="editorWordImagesCountLabel" class="text-xs font-bold text-indigo-900"></div>
+                <div id="editorWordImagesCountLabel" class="text-xs font-bold text-blue-950 flex items-center justify-between flex-wrap gap-2"></div>
                 <div id="editorWordImagesPreviewGrid"></div>
-              </div>
-
-              <div>
-                <label class="block text-xs font-semibold text-slate-700 mb-1">Nội dung văn bản trích xuất (tùy chọn)</label>
-                <textarea id="editorWordDocText" rows="4"
-                  class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white"></textarea>
               </div>
             </div>
 
@@ -622,7 +669,7 @@
 
           <div class="pt-2 flex justify-end">
             <button type="button" onclick="saveCurrentQuizFromEditor()"
-              class="px-6 py-3 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white text-sm font-bold">
+              class="px-6 py-3 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-sm font-bold">
               Lưu đề lên Cloud
             </button>
           </div>
@@ -630,6 +677,72 @@
       </div>
     </section>
   </main>
+
+  <!-- PHẦN GIỚI THIỆU Ở DƯỚI CÙNG (THIẾT KẾ LẠI ĐẸP & RÕ CẤU TRÚC) -->
+  <footer class="bg-white border-t border-slate-200 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <div class="rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50/90 via-white to-emerald-50/60 p-5 sm:p-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-7 space-y-3">
+            <div class="flex items-center gap-3 flex-wrap">
+              <img
+                src="./logo.png"
+                alt="Logo Natech VN"
+                class="w-11 h-11 rounded-xl object-cover shrink-0 border border-blue-200 shadow-sm"
+                />
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="text-base sm:text-lg font-extrabold text-slate-900">Natech VN</span>
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
+                    <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                    Hệ thống mở công khai
+                  </span>
+                </div>
+                <p class="text-xs text-slate-600">Nền tảng luyện thi &amp; kiểm tra trắc nghiệm trực tuyến</p>
+              </div>
+            </div>
+
+            <p class="text-xs sm:text-sm text-slate-700 leading-relaxed">
+              Hỗ trợ luyện tập theo định dạng <strong class="text-slate-900">Phần I (A–B–C–D)</strong>,
+              <strong class="text-slate-900">Phần II (Đúng/Sai a–b–c–d)</strong> và
+              <strong class="text-slate-900">Phần III (Trả lời ngắn)</strong>, đồng bộ đề thi và lịch sử làm bài tức thì trên Cloud.
+            </p>
+
+            <div class="flex items-center gap-2 flex-wrap text-[11px] font-semibold text-slate-700">
+              <span class="px-2.5 py-1 rounded-lg bg-white border border-slate-200">Phát triển bởi: <strong class="text-blue-900">Nguyễn Anh Tú</strong></span>
+              <span class="px-2.5 py-1 rounded-lg bg-white border border-slate-200">Hỗ trợ Word (.docx) &amp; PDF</span>
+              <span class="px-2.5 py-1 rounded-lg bg-white border border-slate-200">Lưu lịch sử minh bạch</span>
+            </div>
+          </div>
+
+          <div class="lg:col-span-5 flex flex-col sm:flex-row lg:flex-col items-stretch sm:items-center lg:items-end justify-between gap-3">
+            <div class="text-left lg:text-right space-y-0.5">
+              <div class="text-xs font-extrabold uppercase tracking-wider text-blue-900">Liên hệ &amp; Hỗ trợ</div>
+              <div class="text-xs text-slate-600">Trao đổi về đề thi, cấp tài khoản hoặc góp ý tính năng</div>
+            </div>
+
+            <div class="flex items-center gap-2.5 flex-wrap">
+              <a href="https://www.facebook.com/nguyenanhtu169663" target="_blank" rel="noopener noreferrer"
+                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs sm:text-sm font-bold shadow-sm transition">
+                <span>Facebook</span>
+                <span aria-hidden="true">↗</span>
+              </a>
+              <a href="https://zalo.me/0962139328" target="_blank" rel="noopener noreferrer"
+                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-blue-50 text-blue-950 border border-blue-300 text-xs sm:text-sm font-bold shadow-sm transition">
+                <span>Zalo: 0962••••28</span>
+                <span aria-hidden="true">↗</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-slate-500">
+        <span>© 2026 Natech VN — Nguyễn Anh Tú. Giữ toàn bộ quyền thiết kế &amp; vận hành hệ thống.</span>
+        <span>Chuẩn cấu trúc luyện thi THPT &amp; bài tập trắc nghiệm</span>
+      </div>
+    </div>
+  </footer>
 
   <!-- TOAST -->
   <div id="toastBox" class="hidden fixed bottom-5 right-5 z-50 max-w-sm">
@@ -650,7 +763,7 @@
           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm" />
         <p id="authErrorMsg" class="hidden text-xs text-rose-700 font-medium"></p>
         <button id="authSubmitBtn" type="submit"
-          class="w-full py-2.5 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white text-sm font-bold">
+          class="w-full py-2.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-sm font-bold">
           Đăng nhập
         </button>
       </form>
@@ -673,7 +786,7 @@
           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm" />
         <p id="changePasswordError" class="hidden text-xs text-rose-700 font-medium"></p>
         <button type="submit"
-          class="w-full py-2.5 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white text-sm font-bold">
+          class="w-full py-2.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-sm font-bold">
           Cập nhật mật khẩu
         </button>
       </form>
@@ -695,7 +808,7 @@
           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm" />
         <p id="guestInfoErrorMsg" class="hidden text-xs text-rose-700 font-medium"></p>
         <button type="submit"
-          class="w-full py-2.5 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white text-sm font-bold">
+          class="w-full py-2.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-sm font-bold">
           Bắt đầu làm bài
         </button>
       </form>
@@ -716,7 +829,7 @@
           class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm" />
         <p id="resetStudentPasswordError" class="hidden text-xs text-rose-700 font-medium"></p>
         <button type="submit"
-          class="w-full py-2.5 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white text-sm font-bold">
+          class="w-full py-2.5 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-sm font-bold">
           Lưu mật khẩu mới
         </button>
       </form>
@@ -744,7 +857,7 @@
       <p id="confirmModalDesc" class="text-sm text-slate-600"></p>
       <div class="flex justify-end gap-2">
         <button type="button" onclick="closeConfirmModal()" class="px-4 py-2 rounded-xl bg-slate-100 text-xs font-bold">Hủy</button>
-        <button id="confirmModalOkBtn" type="button" class="px-4 py-2 rounded-xl bg-indigo-700 text-white text-xs font-bold">Xác nhận</button>
+        <button id="confirmModalOkBtn" type="button" class="px-4 py-2 rounded-xl bg-blue-700 text-white text-xs font-bold">Xác nhận</button>
       </div>
     </div>
   </div>
@@ -875,15 +988,11 @@
     let mobileWordViewMode = 'both';
     let extractedWordImages = [];
 
-    // Chỉ số ảnh đang hiển thị cho đề Word/PDF (mặc định = 0: chỉ nhìn 1 ảnh đầu tiên từ đầu)
-    let currentWordImageIndex = 0;
-    let currentEditorWordImageIndex = 0;
-
     // =========================================================================
     // KIỂM TRA & NÉN ẢNH (< 1MB) CHO TỪNG CÂU & TÀI LIỆU WORD/PDF
     // =========================================================================
     const MAX_SINGLE_IMAGE_BYTES = 1024 * 1024; // 1MB
-    const SAFE_STORED_IMAGE_BYTES = 750 * 1024; // ~750KB
+    const SAFE_STORED_IMAGE_BYTES = 140 * 1024; // ~750KB
 
     function estimateDataUrlBytes(dataUrl) {
       if (!dataUrl || typeof dataUrl !== 'string') return 0;
@@ -970,7 +1079,7 @@
       });
     }
 
-    async function fitImagesUnderFirestoreLimit(rawImages, maxTotalChars = 750000) {
+    async function fitImagesUnderFirestoreLimit(rawImages, maxTotalChars = 920000) {
       const list = parseImageLines(rawImages);
       const result = [];
       let totalChars = 0;
@@ -1019,6 +1128,83 @@
           </figure>
         </div>
       `;
+    }
+
+    // Khung hiển thị ảnh Word / PDF dạng lăn chuột kiểu iframe
+    function renderWordIframeScrollHtml(docImages, docLabel, frameId, statusId) {
+      if (!docImages || !docImages.length) {
+        return `<div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600">(Chưa có hình ảnh trong đề)</div>`;
+      }
+
+      const safeLabel = escapeHtml(docLabel || 'Tài liệu đề');
+      return `
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between gap-2 flex-wrap px-3 py-2 rounded-xl bg-blue-50 border border-blue-200">
+            <span id="${escapeHtml(statusId)}" class="text-xs font-bold text-blue-950">
+              Khung lăn chuột (${docImages.length} ảnh) — Trang 1 / ${docImages.length}
+            </span>
+            <span class="text-[11px] font-semibold text-blue-800">
+              Lăn chuột dọc trong khung để lướt ảnh • Bấm ảnh để phóng to
+            </span>
+          </div>
+
+          <div
+            id="${escapeHtml(frameId)}"
+            tabindex="0"
+            role="region"
+            aria-label="${safeLabel}"
+            onscroll="updateWordScrollFrameStatus('${escapeHtml(frameId)}', '${escapeHtml(statusId)}', ${docImages.length})"
+            class="word-iframe-scroll-frame space-y-4">
+            ${docImages.map((src, idx) => {
+              const safeSrc = escapeHtml(src);
+              const cap = `${docLabel || 'Đề thi'} — Ảnh ${idx + 1}/${docImages.length}`;
+              const safeCap = escapeHtml(cap);
+              return `
+                <div class="word-scroll-page-item bg-white rounded-xl p-2.5 sm:p-3 border border-slate-200 shadow-sm">
+                  <div class="flex items-center justify-between text-[11px] font-semibold text-slate-500 mb-2 px-1">
+                    <span>Trang / Ảnh ${idx + 1} / ${docImages.length}</span>
+                    <button type="button" onclick="openImageLightbox('${safeSrc}', '${safeCap}')"
+                      class="text-blue-700 hover:underline font-bold">
+                      Phóng to ⤢
+                    </button>
+                  </div>
+                  <img
+                    src="${safeSrc}"
+                    alt="${safeCap}"
+                    loading="lazy"
+                    onclick="openImageLightbox(this.src, '${safeCap}')"
+                    class="word-scroll-page-img"
+                  />
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function updateWordScrollFrameStatus(frameId, statusId, totalCount) {
+      const frameEl = document.getElementById(frameId);
+      const statusEl = document.getElementById(statusId);
+      if (!frameEl || !statusEl || !totalCount) return;
+
+      const items = frameEl.querySelectorAll('.word-scroll-page-item');
+      if (!items.length) return;
+
+      const frameRect = frameEl.getBoundingClientRect();
+      let activeIdx = 0;
+      let minDist = Infinity;
+
+      items.forEach((item, idx) => {
+        const rect = item.getBoundingClientRect();
+        const dist = Math.abs(rect.top - frameRect.top - 12);
+        if (dist < minDist) {
+          minDist = dist;
+          activeIdx = idx;
+        }
+      });
+
+      statusEl.textContent = `Khung lăn chuột (${totalCount} ảnh) — Đang xem trang ${activeIdx + 1} / ${totalCount}`;
     }
 
     function openImageLightbox(src, caption = 'Hình ảnh đề thi') {
@@ -1087,7 +1273,7 @@
       });
       const activeBtn = mode === 'doc' ? bDoc : mode === 'sheet' ? bSheet : bBoth;
       if (activeBtn) {
-        activeBtn.className = 'py-1.5 rounded-lg text-xs font-bold bg-indigo-700 text-white';
+        activeBtn.className = 'py-1.5 rounded-lg text-xs font-bold bg-blue-700 text-white';
       }
 
       if (docCard) docCard.classList.toggle('hidden', mode === 'sheet');
@@ -1700,34 +1886,6 @@
       return [...direct, ...ext];
     }
 
-    function changeWordImageIndex(delta) {
-      if (!activeQuiz) return;
-      const docImages = getQuizDocImages(activeQuiz);
-      if (!docImages.length) return;
-      currentWordImageIndex = (currentWordImageIndex + delta + docImages.length) % docImages.length;
-      renderQuizQuestions();
-      refreshAllAnswerHighlights();
-    }
-
-    function jumpWordImageIndex(idx) {
-      if (!activeQuiz) return;
-      const docImages = getQuizDocImages(activeQuiz);
-      if (!docImages.length) return;
-      const target = Number(idx);
-      if (Number.isNaN(target)) return;
-      currentWordImageIndex = Math.max(0, Math.min(docImages.length - 1, target));
-      renderQuizQuestions();
-      refreshAllAnswerHighlights();
-    }
-
-    function changeEditorWordImageIndex(delta) {
-      const manualUrls = parseImageLines(document.getElementById('editorWordImageUrls')?.value || '');
-      const combined = [...extractedWordImages, ...manualUrls];
-      if (!combined.length) return;
-      currentEditorWordImageIndex = (currentEditorWordImageIndex + delta + combined.length) % combined.length;
-      renderEditorWordImagePreview();
-    }
-
     function renderQuizList() {
       const grid = document.getElementById('quizGrid');
       const searchQuery = (document.getElementById('quizSearchInput')?.value || '').trim().toLowerCase();
@@ -1766,7 +1924,7 @@
           <div class="col-span-full bg-white rounded-2xl border border-dashed border-slate-300 p-10 text-center">
             <p class="text-slate-600 font-medium">${cloudReady ? 'Chưa có đề thi / bài tập nào khớp bộ lọc.' : 'Đang tải danh sách từ Cloud...'}</p>
             ${currentUser && currentUser.isAdmin
-              ? `<button type="button" onclick="openAdminView()" class="mt-3 px-4 py-2 rounded-xl bg-indigo-700 text-white text-sm font-semibold">Tạo mới</button>`
+              ? `<button type="button" onclick="openAdminView()" class="mt-3 px-4 py-2 rounded-xl bg-blue-700 text-white text-sm font-semibold">Tạo mới</button>`
               : ''}
           </div>
         `;
@@ -1786,19 +1944,19 @@
 
         return `
           <div onclick="openQuizDetailView('${escapeHtml(quiz.id)}')"
-            class="cursor-pointer bg-white rounded-2xl border ${isHot ? 'border-rose-300 ring-1 ring-rose-300/70' : 'border-slate-200'} p-4 sm:p-5 flex flex-col justify-between hover:border-indigo-400 hover:shadow-md transition">
+            class="cursor-pointer bg-white rounded-2xl border ${isHot ? 'border-rose-300 ring-1 ring-rose-300/70' : 'border-slate-200'} p-4 sm:p-5 flex flex-col justify-between hover:border-blue-400 hover:shadow-md transition">
             <div class="space-y-2.5">
               <div class="flex items-center justify-between gap-2 flex-wrap">
                 <div class="flex items-center gap-1.5 flex-wrap">
                   ${orderedTags.map(t => renderTagBadge(t)).join('')}
                   ${renderQuizTypeBadge(quiz.quizType)}
-                  ${wordMode ? `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-900 border border-indigo-300">Word/PDF${docImgCount ? ` • ${docImgCount} ảnh` : ''}</span>` : ''}
+                  ${wordMode ? `<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-900 border border-blue-300">Word/PDF${docImgCount ? ` • ${docImgCount} ảnh` : ''}</span>` : ''}
                 </div>
                 <span class="text-xs font-semibold text-blue-900">⏱ ${Number(quiz.durationMinutes || 15)} phút</span>
               </div>
 
               <div class="flex items-center gap-1.5 flex-wrap">
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800 border border-indigo-200">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-900 border border-blue-200">
                   ${escapeHtml(quiz.subject)}
                 </span>
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold ${isOpen ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' : 'bg-slate-100 text-slate-700 border border-slate-300'}">
@@ -1820,7 +1978,7 @@
                 <span>P.III: <strong>${shortCount}</strong></span>
                 <span>Tổng: <strong>${mcqCount + tfCount + shortCount}</strong> câu</span>
               </div>
-              <div class="w-full py-2.5 px-3 rounded-xl bg-indigo-700 text-white text-center text-sm font-semibold">
+              <div class="w-full py-2.5 px-3 rounded-xl bg-blue-700 text-white text-center text-sm font-semibold">
                 ${wordMode ? 'Đọc đề & xem ảnh làm bài' : 'Xem thông tin & làm bài'}
               </div>
             </div>
@@ -1855,7 +2013,7 @@
 
       document.getElementById('detailQuizTopTags').innerHTML = [
         ...(orderedTags.length ? orderedTags.map(t => renderTagBadge(t)) : []),
-        ...(wordMode ? [`<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-900 border border-indigo-300">Word/PDF${found.wordFileName ? `: ${escapeHtml(found.wordFileName)}` : ''}${docImgCount ? ` (${docImgCount} ảnh)` : ''}</span>`] : [])
+        ...(wordMode ? [`<span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-900 border border-blue-300">Word/PDF${found.wordFileName ? `: ${escapeHtml(found.wordFileName)}` : ''}${docImgCount ? ` (${docImgCount} ảnh)` : ''}</span>`] : [])
       ].join('') || '<span class="text-xs text-slate-500">Không có nhãn</span>';
 
       const typePlaceholder = document.getElementById('detailQuizTypeBadge');
@@ -1889,7 +2047,7 @@
         </div>
         <div class="p-3 sm:p-4 rounded-xl bg-slate-50 border border-slate-200">
           <div class="text-[11px] sm:text-xs text-slate-600">Phần I (A-B-C-D)</div>
-          <div class="text-base sm:text-lg font-bold text-indigo-800 mt-1">${mcqCount} câu</div>
+          <div class="text-base sm:text-lg font-bold text-blue-800 mt-1">${mcqCount} câu</div>
         </div>
         <div class="p-3 sm:p-4 rounded-xl bg-slate-50 border border-slate-200">
           <div class="text-[11px] sm:text-xs text-slate-600">Phần II (Đ/S)</div>
@@ -1919,7 +2077,7 @@
       } else {
         startBtn.textContent = wordMode ? 'Mở đề & xem ảnh làm bài' : 'Bắt đầu làm bài';
         startBtn.disabled = false;
-        startBtn.className = 'w-full sm:w-auto px-6 py-3 rounded-xl bg-indigo-700 hover:bg-indigo-800 text-white text-sm font-semibold transition';
+        startBtn.className = 'w-full sm:w-auto px-6 py-3 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-sm font-semibold transition';
         startBtn.onclick = () => handleStartQuizClick(found.id);
       }
     }
@@ -2034,7 +2192,6 @@
       userAnswers = { mcq: {}, tf: {}, short: {} };
       remainingSeconds = Math.max(1, Number(activeQuiz.durationMinutes || 15)) * 60;
       mobileWordViewMode = 'both';
-      currentWordImageIndex = 0;
 
       hideAllViews();
       document.getElementById('quizView').classList.remove('hidden');
@@ -2163,17 +2320,12 @@
         let navHtml = '';
         let qIndex = 1;
         const docImages = getQuizDocImages(activeQuiz);
-        const safeIdx = docImages.length
-          ? Math.max(0, Math.min(docImages.length - 1, currentWordImageIndex))
-          : 0;
-        currentWordImageIndex = safeIdx;
-        const currentDocImg = docImages[safeIdx] || '';
 
         html += `
           <div id="wordDocCard" class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 space-y-3">
             <div class="flex items-center justify-between gap-2 flex-wrap pb-3 border-b border-slate-200">
               <div class="min-w-0">
-                <span class="text-[11px] font-extrabold uppercase tracking-wider text-blue-900">Tài liệu đề (Word / PDF &amp; Hình ảnh)</span>
+                <span class="text-[11px] font-extrabold uppercase tracking-wider text-blue-900">Tài liệu đề (Word / PDF — Khung lăn chuột kiểu iframe)</span>
                 <h3 class="text-sm sm:text-base font-bold text-slate-900 mt-0.5 truncate">
                   ${escapeHtml(activeQuiz.wordFileName || activeQuiz.title)}
                 </h3>
@@ -2186,57 +2338,23 @@
               ` : ''}
             </div>
 
-            ${docImages.length ? `
-              <div class="space-y-3">
-                <div class="flex items-center justify-between gap-2 flex-wrap px-3 py-2 rounded-xl bg-indigo-50 border border-indigo-200">
-                  <span class="text-xs font-bold text-indigo-900">
-                    Đang xem 1 ảnh lớn: Ảnh ${safeIdx + 1} / ${docImages.length}
-                  </span>
-                  <div class="flex items-center gap-1.5 flex-wrap">
-                    <button type="button" onclick="changeWordImageIndex(-1)"
-                      class="px-3 py-1.5 rounded-lg bg-white hover:bg-indigo-100 text-indigo-900 border border-indigo-300 text-xs font-bold transition">
-                      ◀ Ảnh trước
-                    </button>
-                    <select onchange="jumpWordImageIndex(this.value)"
-                      aria-label="Chọn ảnh trang đề"
-                      class="px-2.5 py-1.5 rounded-lg bg-white border border-indigo-300 text-xs font-bold text-slate-800">
-                      ${docImages.map((_, i) => `<option value="${i}" ${i === safeIdx ? 'selected' : ''}>Trang/Ảnh ${i + 1}</option>`).join('')}
-                    </select>
-                    <button type="button" onclick="changeWordImageIndex(1)"
-                      class="px-3 py-1.5 rounded-lg bg-white hover:bg-indigo-100 text-indigo-900 border border-indigo-300 text-xs font-bold transition">
-                      Ảnh tiếp ▶
-                    </button>
-                  </div>
-                </div>
-
-                <figure class="w-full p-3 sm:p-4 rounded-xl bg-slate-50 border border-slate-200">
-                  <img src="${escapeHtml(currentDocImg)}"
-                    alt="${escapeHtml(`${activeQuiz.wordFileName || activeQuiz.title} - Ảnh ${safeIdx + 1}/${docImages.length}`)}"
-                    onclick="openImageLightbox(this.src, '${escapeHtml(`${activeQuiz.wordFileName || activeQuiz.title} - Ảnh ${safeIdx + 1}/${docImages.length}`)}')"
-                    class="word-single-page-image" />
-                  <figcaption class="mt-2 text-center text-xs font-medium text-slate-600">
-                    Ảnh ${safeIdx + 1}/${docImages.length} — bấm vào ảnh để phóng to toàn màn hình
-                  </figcaption>
-                </figure>
-              </div>
-            ` : ''}
-
-            ${activeQuiz.wordDocText ? `
-              <div class="p-3.5 sm:p-4 rounded-xl bg-slate-50 border border-slate-200 max-h-[50vh] overflow-y-auto word-doc-viewer text-slate-900">${escapeHtml(activeQuiz.wordDocText)}</div>
-            ` : (!docImages.length ? `
-              <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600">(Chưa có nội dung văn bản hoặc hình ảnh trong đề)</div>
-            ` : '')}
+            ${renderWordIframeScrollHtml(
+              docImages,
+              activeQuiz.wordFileName || activeQuiz.title,
+              'quizWordScrollFrame',
+              'quizWordScrollStatus'
+            )}
           </div>
         `;
 
         html += `<div id="wordAnswerSheetWrap" class="space-y-3">`;
 
         if (mcqList.length) {
-          html += `<div class="text-xs font-extrabold uppercase tracking-wider text-indigo-800 pt-1">Phiếu trả lời Phần I: Chọn đáp án A, B, C, D</div>`;
+          html += `<div class="text-xs font-extrabold uppercase tracking-wider text-blue-900 pt-1">Phiếu trả lời Phần I: Chọn đáp án A, B, C, D</div>`;
           html += `<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">`;
           mcqList.forEach((q) => {
             const domId = `q-anchor-${qIndex}`;
-            navHtml += `<a href="#${domId}" id="nav-btn-${domId}" class="w-8 h-8 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-700 flex items-center justify-center hover:border-indigo-400">C${qIndex}</a>`;
+            navHtml += `<a href="#${domId}" id="nav-btn-${domId}" class="w-8 h-8 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-700 flex items-center justify-center hover:border-blue-400">C${qIndex}</a>`;
             const letters = ['A', 'B', 'C', 'D'];
             html += `
               <div id="${domId}" class="bg-white rounded-2xl border border-slate-200 p-3.5 flex items-center justify-between gap-2 transition">
@@ -2309,7 +2427,7 @@
                 <input id="short-ans-input-${escapeHtml(q.id)}" type="text"
                   placeholder="Nhập đáp án..."
                   oninput="selectShortOption('${escapeHtml(q.id)}', this.value)"
-                  class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
             `;
             qIndex += 1;
@@ -2328,15 +2446,15 @@
       let qIndex = 1;
 
       if (mcqList.length) {
-        html += `<div class="text-xs font-extrabold uppercase tracking-wider text-indigo-800 pt-1">Phần I: Trắc nghiệm nhiều lựa chọn (A, B, C, D)</div>`;
+        html += `<div class="text-xs font-extrabold uppercase tracking-wider text-blue-900 pt-1">Phần I: Trắc nghiệm nhiều lựa chọn (A, B, C, D)</div>`;
         mcqList.forEach((q) => {
           const domId = `q-anchor-${qIndex}`;
-          navHtml += `<a href="#${domId}" id="nav-btn-${domId}" class="w-8 h-8 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-700 flex items-center justify-center hover:border-indigo-400">C${qIndex}</a>`;
+          navHtml += `<a href="#${domId}" id="nav-btn-${domId}" class="w-8 h-8 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-700 flex items-center justify-center hover:border-blue-400">C${qIndex}</a>`;
           const letters = ['A', 'B', 'C', 'D'];
           const singleImg = getSingleQuestionImage(q);
           html += `
             <div id="${domId}" class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 transition">
-              <div class="text-xs font-bold text-indigo-700 uppercase">Câu ${qIndex} • Phần I</div>
+              <div class="text-xs font-bold text-blue-700 uppercase">Câu ${qIndex} • Phần I</div>
               <p class="text-sm sm:text-base font-semibold text-slate-900 mt-1">${escapeHtml(q.prompt)}</p>
               ${renderSingleImageHtml(singleImg, `Câu ${qIndex}`)}
               <div class="mt-3.5 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -2345,7 +2463,7 @@
                     class="flex items-start gap-3 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer transition">
                     <input type="radio" name="mcq_${q.id}" value="${optIdx}"
                       onchange="selectMcqOption('${escapeHtml(q.id)}', ${optIdx})"
-                      class="mt-1 accent-indigo-700" />
+                      class="mt-1 accent-blue-700" />
                     <span class="text-sm text-slate-800"><strong>${letters[optIdx]}.</strong> ${escapeHtml(opt)}</span>
                   </label>
                 `).join('')}
@@ -2413,7 +2531,7 @@
                 <input id="short-ans-input-${escapeHtml(q.id)}" type="text"
                   placeholder="Nhập đáp án ngắn gọn..."
                   oninput="selectShortOption('${escapeHtml(q.id)}', this.value)"
-                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
               </div>
             </div>
           `;
@@ -2458,7 +2576,7 @@
         const navBtn = document.getElementById(`nav-btn-q-anchor-${qIndex}`);
         if (navBtn) {
           navBtn.className = done
-            ? 'w-8 h-8 rounded-lg bg-indigo-700 text-white text-xs font-extrabold flex items-center justify-center'
+            ? 'w-8 h-8 rounded-lg bg-blue-700 text-white text-xs font-extrabold flex items-center justify-center'
             : 'w-8 h-8 rounded-lg border border-slate-300 bg-white text-xs font-bold text-slate-700 flex items-center justify-center';
         }
         qIndex += 1;
@@ -2655,9 +2773,9 @@
           <div class="text-xs text-slate-600">Phần III (Trả lời ngắn)</div>
           <div class="text-lg font-bold text-amber-900 mt-1">${record.shortCorrect ?? 0}/${record.shortTotal ?? 0} câu đúng</div>
         </div>
-        <div class="p-4 rounded-xl bg-indigo-100 border border-indigo-200">
-          <div class="text-xs text-indigo-900">Điểm quy đổi thang 10</div>
-          <div class="text-lg font-bold text-indigo-900 mt-1">${Number(record.score).toFixed(2)} / 10.00</div>
+        <div class="p-4 rounded-xl bg-blue-100 border border-blue-200">
+          <div class="text-xs text-blue-900">Điểm quy đổi thang 10</div>
+          <div class="text-lg font-bold text-blue-900 mt-1">${Number(record.score).toFixed(2)} / 10.00</div>
         </div>
       `;
 
@@ -2676,8 +2794,8 @@
         if (docImages.length) {
           out += `
             <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-2">
-              <div class="text-xs font-bold uppercase text-blue-900">Ảnh tài liệu đề thi (1 ảnh lớn / hàng)</div>
-              ${docImages.map((src, i) => renderSingleImageHtml(src, `${snapshot.title || 'Đề thi'} — Ảnh ${i + 1}/${docImages.length}`)).join('')}
+              <div class="text-xs font-bold uppercase text-blue-900">Ảnh tài liệu đề thi (Khung lăn chuột kiểu iframe)</div>
+              ${renderWordIframeScrollHtml(docImages, snapshot.title || 'Đề thi', 'reviewWordScrollFrame', 'reviewWordScrollStatus')}
             </div>
           `;
         }
@@ -2686,7 +2804,7 @@
         const shortList = snapshot.shortQuestions || [];
         if (mcqList.length) {
           out += `<div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-3">
-            <div class="text-xs font-bold uppercase text-indigo-800">Đối chiếu đáp án Phần I (A, B, C, D)</div>
+            <div class="text-xs font-bold uppercase text-blue-900">Đối chiếu đáp án Phần I (A, B, C, D)</div>
             <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2 text-xs">`;
           mcqList.forEach((q, mIdx) => {
             const chosen = answers?.mcq?.[q.id];
@@ -2778,7 +2896,7 @@
         out += `
           <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5">
             <div class="flex items-center justify-between gap-2">
-              <span class="text-xs font-bold uppercase text-indigo-800">
+              <span class="text-xs font-bold uppercase text-blue-900">
                 Câu ${idx} • Phần II (Đạt ${res.points} điểm — ${res.matched}/${res.total} ý đúng)
               </span>
             </div>
@@ -2927,7 +3045,7 @@
           <td class="px-3 sm:px-4 py-3 text-center text-xs">${item.tfFullCorrect}/${item.tfTotal}</td>
           <td class="px-3 sm:px-4 py-3 text-center text-xs">${item.shortCorrect ?? 0}/${item.shortTotal ?? 0}</td>
           <td class="px-3 sm:px-4 py-3 text-center">
-            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-indigo-100 text-indigo-900">
+            <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-900">
               ${Number(item.score).toFixed(2)}
             </span>
           </td>
@@ -2975,7 +3093,7 @@
       const wordSec = document.getElementById('wordEditorSection');
 
       if (currentEditorMode === 'word') {
-        wordBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-700 text-white transition';
+        wordBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-700 text-white transition';
         stdBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 transition';
         stdSec.classList.add('hidden');
         wordSec.classList.remove('hidden');
@@ -2988,7 +3106,7 @@
         }
         renderEditorWordImagePreview();
       } else {
-        stdBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-700 text-white transition';
+        stdBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-700 text-white transition';
         wordBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 transition';
         wordSec.classList.add('hidden');
         stdSec.classList.remove('hidden');
@@ -3006,37 +3124,24 @@
       if (!combined.length) {
         wrap.classList.add('hidden');
         grid.innerHTML = '';
-        currentEditorWordImageIndex = 0;
         return;
       }
 
-      currentEditorWordImageIndex = Math.max(0, Math.min(combined.length - 1, currentEditorWordImageIndex));
-      const idx = currentEditorWordImageIndex;
-      const src = combined[idx];
-      const safeSrc = escapeHtml(src);
-      const safeCap = escapeHtml(`Xem trước ảnh ${idx + 1}/${combined.length}`);
-
       wrap.classList.remove('hidden');
       countLbl.innerHTML = `
-        <span>Ảnh ${idx + 1} / ${combined.length} (hiển thị 1 ảnh lớn đầu tiên)</span>
-        <span class="inline-flex items-center gap-1 ml-2">
-          <button type="button" onclick="changeEditorWordImageIndex(-1)" class="px-2 py-0.5 rounded bg-white border border-slate-300 text-slate-800 font-bold">◀</button>
-          <button type="button" onclick="changeEditorWordImageIndex(1)" class="px-2 py-0.5 rounded bg-white border border-slate-300 text-slate-800 font-bold">▶</button>
-        </span>
+        <span>Xem trước tài liệu Word / PDF (${combined.length} ảnh — lăn chuột trong khung)</span>
+        <span class="text-[11px] font-semibold text-blue-800">Cuộn dọc như iframe</span>
       `;
-      grid.innerHTML = `
-        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-col items-center">
-          <img src="${safeSrc}" alt="${safeCap}"
-            onclick="openImageLightbox(this.src, '${safeCap}')"
-            class="word-single-page-image" />
-          <span class="mt-2 text-xs font-medium text-slate-600">Ảnh ${idx + 1}/${combined.length} — bấm để xem lớn</span>
-        </div>
-      `;
+      grid.innerHTML = renderWordIframeScrollHtml(
+        combined,
+        currentWordFileName || document.getElementById('editorTitle')?.value || 'Tài liệu đề',
+        'editorWordScrollFrame',
+        'editorWordScrollStatus'
+      );
     }
 
     function clearExtractedWordImages() {
       extractedWordImages = [];
-      currentEditorWordImageIndex = 0;
       document.getElementById('editorWordImageUrls').value = '';
       renderEditorWordImagePreview();
       showToast('Đã xóa danh sách ảnh đính kèm.');
@@ -3051,7 +3156,6 @@
       const lowerName = file.name.toLowerCase();
       statusEl.textContent = 'Đang đọc file & nén hình ảnh (< 1MB)...';
       extractedWordImages = [];
-      currentEditorWordImageIndex = 0;
 
       try {
         if (lowerName.endsWith('.pdf') || file.type === 'application/pdf') {
@@ -3062,36 +3166,28 @@
           const pdfDoc = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
           const totalPages = pdfDoc.numPages;
           const pageImages = [];
-          const textChunks = [];
 
           for (let p = 1; p <= totalPages; p++) {
             statusEl.textContent = `Đang render trang PDF ${p}/${totalPages}...`;
             const page = await pdfDoc.getPage(p);
-            const viewport = page.getViewport({ scale: 1.25 });
+            const viewport = page.getViewport({ scale: 0.95 });
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             canvas.width = Math.floor(viewport.width);
             canvas.height = Math.floor(viewport.height);
             await page.render({ canvasContext: ctx, viewport }).promise;
-            const rawPageDataUrl = canvas.toDataURL('image/jpeg', 0.72);
-            const compressedPage = await compressSingleImageToLimit(rawPageDataUrl, SAFE_STORED_IMAGE_BYTES);
+            const rawPageDataUrl = canvas.toDataURL('image/jpeg', 0.55);
+            const compressedPage = await compressSingleImageToLimit(rawPageDataUrl, 140 * 1024);
             if (compressedPage) pageImages.push(compressedPage);
-
-            try {
-              const txtContent = await page.getTextContent();
-              const pageStr = txtContent.items.map(it => it.str).join(' ').trim();
-              if (pageStr) textChunks.push(`--- Trang ${p} ---\n${pageStr}`);
-            } catch (e) {}
           }
 
-          extractedWordImages = await fitImagesUnderFirestoreLimit(pageImages, 750000);
+          extractedWordImages = await fitImagesUnderFirestoreLimit(pageImages,920000);
           currentWordFileName = file.name;
-          document.getElementById('editorWordDocText').value = textChunks.join('\n\n');
           if (!document.getElementById('editorTitle').value.trim()) {
             document.getElementById('editorTitle').value = file.name.replace(/\.pdf$/i, '');
           }
           nameBadge.textContent = `File PDF: ${file.name}`;
-          statusEl.textContent = `Đã tải PDF (${extractedWordImages.length}/${totalPages} trang ảnh — xem ảnh 1 trước)`;
+          statusEl.textContent = `Đã tải PDF (${extractedWordImages.length}/${totalPages} trang ảnh — lăn chuột trong khung để xem)`;
           renderEditorWordImagePreview();
           showToast(`Đã tải PDF ${file.name} (${extractedWordImages.length} trang ảnh)`);
           return;
@@ -3118,17 +3214,13 @@
           }
         );
 
-        const textResult = await window.mammoth.extractRawText({ arrayBuffer });
-        const extracted = String(textResult.value || '').trim();
-
         extractedWordImages = await fitImagesUnderFirestoreLimit(foundImgs, 750000);
         currentWordFileName = file.name;
-        document.getElementById('editorWordDocText').value = extracted;
         if (!document.getElementById('editorTitle').value.trim()) {
           document.getElementById('editorTitle').value = file.name.replace(/\.docx$/i, '');
         }
         nameBadge.textContent = `File Word: ${file.name}`;
-        statusEl.textContent = `Đã đọc file (${extracted.length.toLocaleString('vi-VN')} ký tự, ${extractedWordImages.length} ảnh — xem ảnh 1 trước)`;
+        statusEl.textContent = `Đã tải file (${extractedWordImages.length} ảnh — lăn chuột trong khung để xem)`;
         renderEditorWordImagePreview();
         showToast(`Đã tải ${file.name} (${extractedWordImages.length} ảnh)`);
       } catch (err) {
@@ -3497,7 +3589,7 @@
               <div class="text-sm font-bold text-slate-900 truncate">${escapeHtml(q.title)}</div>
               <div class="flex items-center gap-1.5 flex-wrap text-xs text-slate-600">
                 <span>${typeLabel}</span>
-                ${wordMode ? `<span>•</span><span class="font-semibold text-indigo-800">Word/PDF</span>` : ''}
+                ${wordMode ? `<span>•</span><span class="font-semibold text-blue-900">Word/PDF</span>` : ''}
                 <span>•</span>
                 <span>${escapeHtml(q.subject)}</span>
                 <span>•</span>
@@ -3526,7 +3618,6 @@
       editingQuizId = null;
       currentWordFileName = '';
       extractedWordImages = [];
-      currentEditorWordImageIndex = 0;
       document.getElementById('editorHeading').textContent = 'Tạo Mới';
       document.getElementById('editorTitle').value = '';
       document.getElementById('editorQuizType').value = 'exam';
@@ -3540,7 +3631,6 @@
       document.getElementById('editorWordFileInput').value = '';
       document.getElementById('editorWordExternalUrl').value = '';
       document.getElementById('editorWordImageUrls').value = '';
-      document.getElementById('editorWordDocText').value = '';
       document.getElementById('wordFileStatus').textContent = 'Chưa chọn file Word / PDF';
       document.getElementById('wordFileNameBadge').textContent = '';
       renderEditorWordImagePreview();
@@ -3579,10 +3669,8 @@
       if (isWordQuiz(q)) {
         currentWordFileName = q.wordFileName || '';
         extractedWordImages = parseImageLines(q.wordImages);
-        currentEditorWordImageIndex = 0;
         document.getElementById('editorWordExternalUrl').value = q.wordExternalUrl || '';
         document.getElementById('editorWordImageUrls').value = '';
-        document.getElementById('editorWordDocText').value = q.wordDocText || '';
         document.getElementById('wordFileNameBadge').textContent = currentWordFileName ? `File: ${currentWordFileName}` : '';
         document.getElementById('wordFileStatus').textContent = currentWordFileName
           ? `Đã tải: ${currentWordFileName} (${extractedWordImages.length} ảnh)`
@@ -3715,7 +3803,7 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <input type="file" accept="image/*"
               onchange="handleQuestionSingleFileUpload(this)"
-              class="block w-full text-xs text-slate-700 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-100 file:text-indigo-900 hover:file:bg-indigo-200 question-image-file" />
+              class="block w-full text-xs text-slate-700 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-100 file:text-blue-950 hover:file:bg-blue-200 question-image-file" />
             <input type="url" placeholder="Hoặc dán 1 link URL ảnh (https://...)"
               value="${urlValue}"
               oninput="handleQuestionImageUrlChange(this)"
@@ -3743,7 +3831,7 @@
 
       card.innerHTML = `
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-bold text-indigo-800">Câu hỏi trắc nghiệm (A, B, C, D)</span>
+          <span class="text-xs font-bold text-blue-900">Câu hỏi trắc nghiệm (A, B, C, D)</span>
           <div class="flex items-center gap-2">
             <label class="text-xs font-semibold text-slate-700">Đáp án đúng:</label>
             <select class="px-2.5 py-1 rounded-lg border border-emerald-300 bg-emerald-100 text-emerald-950 text-xs font-bold mcq-correct-select">
@@ -3884,13 +3972,12 @@
       const quizId = editingQuizId || `quiz-${Date.now()}`;
 
       if (currentEditorMode === 'word') {
-        const wordDocText = document.getElementById('editorWordDocText').value.trim();
         const wordExternalUrl = document.getElementById('editorWordExternalUrl').value.trim();
         const manualImgs = parseImageLines(document.getElementById('editorWordImageUrls').value);
         const wordImages = await fitImagesUnderFirestoreLimit([...extractedWordImages, ...manualImgs], 750000);
 
-        if (!wordDocText && !wordExternalUrl && !wordImages.length) {
-          showToast('Vui lòng tải file Word (.docx), PDF (.pdf), thêm ảnh hoặc nhập nội dung đề.', true);
+        if (!wordExternalUrl && !wordImages.length) {
+          showToast('Vui lòng tải file Word (.docx), PDF (.pdf) hoặc thêm ảnh đề.', true);
           return;
         }
 
@@ -3946,7 +4033,7 @@
           wordFileName: currentWordFileName || '',
           wordExternalUrl,
           wordImages,
-          wordDocText,
+          wordDocText: '',
           title,
           quizType,
           subject,
