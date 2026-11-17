@@ -7,8 +7,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth.js/1.6.0/mammoth.browser.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <style>
     .hidden-modal {
       display: none !important;
@@ -31,12 +29,6 @@
     .word-q-answered {
       border-color: #6366f1 !important;
       background-color: #eef2ff !important;
-    }
-
-    .opt-pill-selected {
-      background-color: #4338ca !important;
-      color: #ffffff !important;
-      border-color: #3730a3 !important;
     }
 
     .std-mcq-selected {
@@ -134,9 +126,34 @@
   <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 flex-1 space-y-6">
     <!-- TRANG CHỦ -->
     <section id="homeView" class="space-y-6">
+      <!-- PHẦN GIỚI THIỆU HỆ THỐNG & TÁC GIẢ -->
+      <div class="bg-gradient-to-r from-indigo-900 via-indigo-800 to-blue-900 text-white rounded-2xl p-5 sm:p-7 shadow-sm space-y-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div class="space-y-2 max-w-3xl">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-xs font-bold tracking-wide">
+              <span>Natech VN • Nền tảng luyện thi &amp; kiểm tra trực tuyến</span>
+            </div>
+            <h1 class="text-xl sm:text-2xl font-extrabold leading-snug">
+              Luyện Đề Trắc Nghiệm Chuẩn Định Dạng THPT Quốc Gia
+            </h1>
+            <p class="text-xs sm:text-sm text-indigo-100 leading-relaxed">
+              Hệ thống hỗ trợ làm bài và chấm điểm tự động theo cấu trúc Phần I (A, B, C, D), Phần II (Đúng/Sai a, b, c, d) và Phần III (Trả lời ngắn), lưu lịch sử minh bạch trên Cloud và tích hợp AI quét hình ảnh đề thi để tự lập câu hỏi kèm cắt ảnh thí nghiệm/hình minh họa.
+            </p>
+          </div>
+
+          <div class="bg-white/10 border border-white/20 rounded-2xl p-4 sm:min-w-[270px] space-y-1.5 text-xs">
+            <div class="text-indigo-200 font-semibold uppercase tracking-wider text-[10px]">Phát triển &amp; vận hành</div>
+            <div class="text-sm font-extrabold text-white">Nguyễn Anh Tú</div>
+            <div class="text-indigo-100">Khoa học tự nhiên • Tin học • Vật lý • Toán học</div>
+            <div class="pt-1 text-[11px] text-indigo-200">Đồng bộ thời gian thực qua Firebase Cloud</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- THỐNG KÊ TỔNG QUAN -->
       <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 class="text-lg sm:text-xl font-extrabold text-slate-900">Danh sách Đề thi &amp; Bài tập</h1>
+          <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">Danh sách Đề thi &amp; Bài tập</h2>
           <p id="statScopeNote" class="text-xs text-slate-600 mt-0.5">Nhập họ tên (Khách) hoặc đăng nhập để xem thống kê</p>
         </div>
         <div class="grid grid-cols-3 gap-2.5 sm:gap-4 text-center">
@@ -387,7 +404,7 @@
       <div class="bg-white rounded-2xl border border-slate-200 p-5 flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">Khu vực quản trị</h2>
-          <p class="text-xs text-slate-600 mt-0.5">Soạn từng câu (1 ảnh/câu &lt; 1MB) hoặc tải Word/PDF để AI tự bóc câu, tự chọn ảnh và soát lại.</p>
+          <p class="text-xs text-slate-600 mt-0.5">Soạn từng câu hoặc tải ảnh câu hỏi để AI tự quét, tự cắt ảnh thí nghiệm và lập sẵn thẻ câu hỏi để sửa lại.</p>
         </div>
         <div class="flex items-center gap-2">
           <button type="button" onclick="resetEditorForNewQuiz()"
@@ -440,11 +457,11 @@
             <div class="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200">
               <button id="modeStandardBtn" type="button" onclick="setEditorMode('standard')"
                 class="px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-700 text-white transition">
-                Soạn từng câu (1 ảnh/câu)
+                Soạn từng câu
               </button>
-              <button id="modeWordBtn" type="button" onclick="setEditorMode('word')"
+              <button id="modeAiScanBtn" type="button" onclick="setEditorMode('aiScan')"
                 class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 transition">
-                AI bóc đề Word / PDF
+                AI quét ảnh câu hỏi
               </button>
             </div>
           </div>
@@ -545,73 +562,64 @@
             </div>
           </div>
 
-          <!-- CHẾ ĐỘ AI BÓC ĐỀ WORD / PDF (KHÔNG CÓ Ô HIỂN THỊ VĂN BẢN ĐỀ WORD) -->
-          <div id="wordEditorSection" class="hidden space-y-5">
+          <!-- CHẾ ĐỘ AI QUÉT HÌNH ẢNH CÂU HỎI + TỰ CẮT ẢNH THÍ NGHIỆM + LẬP THẺ SOẠN -->
+          <div id="aiScanEditorSection" class="hidden space-y-5">
             <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
               <div class="flex items-center justify-between gap-2 flex-wrap">
-                <span class="text-xs font-extrabold text-slate-900">Tải file Word (.docx) hoặc PDF (.pdf) — AI tự bóc câu &amp; chọn ảnh</span>
-                <span id="wordFileNameBadge" class="text-xs font-semibold text-indigo-800"></span>
+                <span class="text-xs font-extrabold text-slate-900">Tải ảnh câu hỏi / ảnh trang đề — AI tự hiểu câu, tự cắt ảnh thí nghiệm &amp; lập thẻ soạn</span>
+                <span id="aiScanFilesBadge" class="text-xs font-semibold text-indigo-800"></span>
               </div>
 
-              <input id="editorWordFileInput" type="file" accept=".docx,.pdf,application/pdf"
-                onchange="handleDocOrPdfFileUpload(event)"
+              <input id="editorAiImagesInput" type="file" accept="image/*" multiple
+                onchange="handleAiScanImagesUpload(event)"
                 class="block w-full text-xs text-slate-700 file:mr-3 file:py-2 file:px-3.5 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-100 file:text-indigo-900" />
 
               <div class="flex flex-col sm:flex-row gap-2">
-                <input id="editorGeminiApiKey" type="password"
-                  placeholder="Gemini API Key tùy chọn (để trống = AI bóc tách tự động cục bộ)"
+                <input id="editorGeminiVisionKey" type="password"
+                  placeholder="Gemini API Key tùy chọn (có key = AI đọc chữ + đáp án từ ảnh; trống = tự cắt ảnh thí nghiệm & tạo thẻ)"
                   class="flex-1 px-3 py-2 rounded-xl border border-slate-300 text-xs bg-white" />
-                <button id="reAnalyzeDocBtn" type="button" onclick="reRunAiAnalysisOnLastFile()"
+                <button type="button" onclick="reRunAiImageScan()"
                   class="px-3.5 py-2 rounded-xl bg-indigo-100 hover:bg-indigo-200 text-indigo-950 text-xs font-bold shrink-0">
-                  Chạy lại AI bóc đề
+                  Quét lại ảnh
                 </button>
               </div>
 
-              <div id="wordFileStatus" class="text-xs font-medium text-slate-600">Chưa chọn file Word / PDF</div>
+              <div id="aiScanStatus" class="text-xs font-medium text-slate-600">Chưa chọn ảnh câu hỏi</div>
             </div>
 
-            <!-- KHU VỰC SOÁT & SỬA CÂU HỎI SAU KHI AI BÓC TÁCH -->
-            <div class="p-4 rounded-xl bg-indigo-50/60 border border-indigo-200 space-y-2">
-              <div class="flex items-center justify-between gap-2 flex-wrap">
-                <span id="aiReviewSummaryBadge" class="text-xs font-extrabold text-indigo-950">
-                  Khu vực soát &amp; sửa câu hỏi (sau khi tải file, bạn có thể sửa câu, đổi ảnh, sửa đáp án)
-                </span>
-                <span class="text-[11px] text-slate-600">Mỗi câu tối đa 1 ảnh (&lt; 1MB)</span>
-              </div>
-            </div>
-
+            <!-- Danh sách thẻ câu hỏi đã được AI lập sẵn — chỉnh sửa y hệt phần Soạn từng câu -->
             <div class="space-y-5">
               <div class="space-y-3">
                 <div class="flex items-center justify-between">
-                  <h4 class="text-sm font-extrabold text-indigo-900">Phần I: Trắc nghiệm (A, B, C, D) — Soát &amp; sửa</h4>
+                  <h4 class="text-sm font-extrabold text-indigo-900">Phần I: Trắc nghiệm (A, B, C, D) — Sửa trực tiếp</h4>
                   <button type="button" onclick="addEditorMcqQuestion()"
                     class="px-3 py-1.5 rounded-lg bg-indigo-100 hover:bg-indigo-200 text-indigo-900 text-xs font-bold">
                     + Thêm câu P.I
                   </button>
                 </div>
-                <div id="aiMcqList" class="space-y-3"></div>
+                <div id="aiScanMcqList" class="space-y-3"></div>
               </div>
 
               <div class="space-y-3">
                 <div class="flex items-center justify-between">
-                  <h4 class="text-sm font-extrabold text-emerald-900">Phần II: Đúng / Sai (a, b, c, d) — Soát &amp; sửa</h4>
+                  <h4 class="text-sm font-extrabold text-emerald-900">Phần II: Đúng / Sai (a, b, c, d) — Sửa trực tiếp</h4>
                   <button type="button" onclick="addEditorTfQuestion()"
                     class="px-3 py-1.5 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-900 text-xs font-bold">
                     + Thêm câu P.II
                   </button>
                 </div>
-                <div id="aiTfList" class="space-y-3"></div>
+                <div id="aiScanTfList" class="space-y-3"></div>
               </div>
 
               <div class="space-y-3">
                 <div class="flex items-center justify-between">
-                  <h4 class="text-sm font-extrabold text-amber-900">Phần III: Câu trả lời ngắn — Soát &amp; sửa</h4>
+                  <h4 class="text-sm font-extrabold text-amber-900">Phần III: Câu trả lời ngắn — Sửa trực tiếp</h4>
                   <button type="button" onclick="addEditorShortQuestion()"
                     class="px-3 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-bold">
                     + Thêm câu P.III
                   </button>
                 </div>
-                <div id="aiShortList" class="space-y-3"></div>
+                <div id="aiScanShortList" class="space-y-3"></div>
               </div>
             </div>
           </div>
@@ -776,11 +784,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    if (window.pdfjsLib && window.pdfjsLib.GlobalWorkerOptions) {
-      window.pdfjsLib.GlobalWorkerOptions.workerSrc =
-        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    }
-
     const COLLECTIONS = {
       QUIZZES: 'natech_quizzes',
       USERS: 'natech_users',
@@ -869,8 +872,8 @@
     let remainingSeconds = 0;
     let pendingConfirmCallback = null;
 
-    // Lưu dữ liệu file Word/PDF vừa tải để chạy lại AI khi cần
-    let lastUploadedDocPayload = null;
+    // Lưu danh sách ảnh gốc đã tải lên để quét lại khi đổi API key
+    let lastScannedImageDataUrls = [];
 
     // =========================================================================
     // KIỂM TRA & NÉN ẢNH (< 1MB) CHO TỪNG CÂU
@@ -951,6 +954,96 @@
         };
         img.onerror = () => resolve('');
         img.src = trimmed;
+      });
+    }
+
+    // Tự động cắt vùng ảnh thí nghiệm / hình vẽ bên trong ảnh trang đề
+    async function autoCropExperimentRegionFromImage(dataUrl) {
+      if (!dataUrl) return '';
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = async () => {
+          const w = img.naturalWidth || img.width;
+          const h = img.naturalHeight || img.height;
+          if (!w || !h) {
+            resolve('');
+            return;
+          }
+
+          const workCanvas = document.createElement('canvas');
+          const scale = Math.min(1, 900 / Math.max(w, h));
+          workCanvas.width = Math.max(1, Math.round(w * scale));
+          workCanvas.height = Math.max(1, Math.round(h * scale));
+          const ctx = workCanvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, workCanvas.width, workCanvas.height);
+          ctx.drawImage(img, 0, 0, workCanvas.width, workCanvas.height);
+
+          const imgData = ctx.getImageData(0, 0, workCanvas.width, workCanvas.height).data;
+          const cw = workCanvas.width;
+          const ch = workCanvas.height;
+
+          // Tìm vùng có mật độ nét vẽ/hình ảnh cao nhất (bỏ qua lề trắng)
+          let minX = cw, minY = ch, maxX = 0, maxY = 0;
+          let nonWhiteCount = 0;
+
+          for (let y = 0; y < ch; y++) {
+            for (let x = 0; x < cw; x++) {
+              const idx = (y * cw + x) * 4;
+              const r = imgData[idx];
+              const g = imgData[idx + 1];
+              const b = imgData[idx + 2];
+              const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+              if (lum < 235) {
+                nonWhiteCount++;
+                if (x < minX) minX = x;
+                if (y < minY) minY = y;
+                if (x > maxX) maxX = x;
+                if (y > maxY) maxY = y;
+              }
+            }
+          }
+
+          if (!nonWhiteCount || maxX <= minX || maxY <= minY) {
+            const fallback = await compressSingleImageToLimit(dataUrl, SAFE_STORED_IMAGE_BYTES);
+            resolve(fallback);
+            return;
+          }
+
+          // Nếu vùng nét chiếm gần toàn bộ ảnh (ảnh đơn lẻ), nén trực tiếp ảnh gốc
+          const areaRatio = ((maxX - minX) * (maxY - minY)) / (cw * ch);
+          if (areaRatio > 0.72) {
+            const fullCompressed = await compressSingleImageToLimit(dataUrl, SAFE_STORED_IMAGE_BYTES);
+            resolve(fullCompressed);
+            return;
+          }
+
+          // Cắt vùng hình thí nghiệm/hình vẽ có đệm viền
+          const pad = Math.round(Math.min(cw, ch) * 0.03);
+          const cropX = Math.max(0, minX - pad);
+          const cropY = Math.max(0, minY - pad);
+          const cropW = Math.min(cw - cropX, (maxX - minX) + pad * 2);
+          const cropH = Math.min(ch - cropY, (maxY - minY) + pad * 2);
+
+          const origCropX = Math.round(cropX / scale);
+          const origCropY = Math.round(cropY / scale);
+          const origCropW = Math.max(1, Math.round(cropW / scale));
+          const origCropH = Math.max(1, Math.round(cropH / scale));
+
+          const cropCanvas = document.createElement('canvas');
+          cropCanvas.width = origCropW;
+          cropCanvas.height = origCropH;
+          const cCtx = cropCanvas.getContext('2d');
+          cCtx.fillStyle = '#ffffff';
+          cCtx.fillRect(0, 0, origCropW, origCropH);
+          cCtx.drawImage(img, origCropX, origCropY, origCropW, origCropH, 0, 0, origCropW, origCropH);
+
+          const croppedDataUrl = cropCanvas.toDataURL('image/jpeg', 0.82);
+          const compressedCrop = await compressSingleImageToLimit(croppedDataUrl, SAFE_STORED_IMAGE_BYTES);
+          resolve(compressedCrop || await compressSingleImageToLimit(dataUrl, SAFE_STORED_IMAGE_BYTES));
+        };
+        img.onerror = () => resolve('');
+        img.src = dataUrl;
       });
     }
 
@@ -2603,18 +2696,17 @@
     }
 
     // =========================================================================
-    // 10. QUẢN LÝ ĐỀ THI, AI BÓC ĐỀ WORD/PDF + SOÁT & SỬA TRỰC TIẾP
+    // 10. QUẢN LÝ ĐỀ THI, AI QUÉT ẢNH CÂU HỎI + TỰ CẮT ẢNH THÍ NGHIỆM
     // =========================================================================
     let editingQuizId = null;
     let currentEditorMode = 'standard';
-    let currentWordFileName = '';
 
     function getActiveQuestionLists() {
-      if (currentEditorMode === 'word') {
+      if (currentEditorMode === 'aiScan') {
         return {
-          mcq: document.getElementById('aiMcqList'),
-          tf: document.getElementById('aiTfList'),
-          short: document.getElementById('aiShortList')
+          mcq: document.getElementById('aiScanMcqList'),
+          tf: document.getElementById('aiScanTfList'),
+          short: document.getElementById('aiScanShortList')
         };
       }
       return {
@@ -2625,404 +2717,163 @@
     }
 
     function setEditorMode(mode) {
-      currentEditorMode = mode === 'word' ? 'word' : 'standard';
+      currentEditorMode = mode === 'aiScan' ? 'aiScan' : 'standard';
       const stdBtn = document.getElementById('modeStandardBtn');
-      const wordBtn = document.getElementById('modeWordBtn');
+      const scanBtn = document.getElementById('modeAiScanBtn');
       const stdSec = document.getElementById('standardEditorSection');
-      const wordSec = document.getElementById('wordEditorSection');
+      const scanSec = document.getElementById('aiScanEditorSection');
 
-      if (currentEditorMode === 'word') {
-        wordBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-700 text-white transition';
+      if (currentEditorMode === 'aiScan') {
+        scanBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-700 text-white transition';
         stdBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 transition';
         stdSec.classList.add('hidden');
-        wordSec.classList.remove('hidden');
+        scanSec.classList.remove('hidden');
       } else {
         stdBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold bg-indigo-700 text-white transition';
-        wordBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 transition';
-        wordSec.classList.add('hidden');
+        scanBtn.className = 'px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 hover:bg-slate-100 transition';
+        scanSec.classList.add('hidden');
         stdSec.classList.remove('hidden');
       }
     }
 
-    // Bộ bóc tách câu hỏi & chọn ảnh tự động từ file Word / PDF
-    function parseQuestionsFromRawBlocks(blocks, pageImages = [], embeddedImages = []) {
-      const mcqQuestions = [];
-      const tfQuestions = [];
-      const shortQuestions = [];
-
-      const cleanBlocks = (blocks || [])
-        .map(b => ({
-          type: b.type || 'text',
-          text: String(b.text || '').trim(),
-          image: String(b.image || '').trim(),
-          pageIdx: Number(b.pageIdx ?? 0)
-        }))
-        .filter(b => b.text || b.image);
-
-      if (!cleanBlocks.length) {
-        return { mcqQuestions, tfQuestions, shortQuestions };
-      }
-
-      // Nhóm các block thành từng cụm câu hỏi bắt đầu bằng "Câu 1", "Câu 2"...
-      const groups = [];
-      let currentGroup = null;
-      let floatingImages = [];
-
-      const qStartRegex = /^(?:câu|question)\s*\d+\s*[:.)]/i;
-
-      cleanBlocks.forEach((blk) => {
-        if (qStartRegex.test(blk.text)) {
-          if (currentGroup) groups.push(currentGroup);
-          currentGroup = {
-            lines: [blk.text],
-            images: [...floatingImages, ...(blk.image ? [blk.image] : [])],
-            pageIdx: blk.pageIdx
-          };
-          floatingImages = [];
-        } else if (currentGroup) {
-          if (blk.text) currentGroup.lines.push(blk.text);
-          if (blk.image) currentGroup.images.push(blk.image);
-        } else {
-          if (blk.image) floatingImages.push(blk.image);
-        }
-      });
-      if (currentGroup) groups.push(currentGroup);
-
-      // Nếu file không đánh số "Câu 1...", gộp thành 1 cụm để bạn soát sửa
-      if (!groups.length) {
-        const allText = cleanBlocks.map(b => b.text).filter(Boolean).join('\n');
-        const allImgs = cleanBlocks.map(b => b.image).filter(Boolean);
-        groups.push({
-          lines: allText ? [allText] : ['Câu 1'],
-          images: allImgs,
-          pageIdx: 0
-        });
-      }
-
-      const pickImageForQuestion = (grp, qIdx) => {
-        if (grp.images && grp.images.length) {
-          return grp.images[0];
-        }
-        if (embeddedImages && embeddedImages.length && embeddedImages[qIdx]) {
-          return embeddedImages[qIdx];
-        }
-        if (pageImages && pageImages.length) {
-          const idx = Math.max(0, Math.min(pageImages.length - 1, grp.pageIdx || 0));
-          return pageImages[idx];
-        }
-        return '';
-      };
-
-      groups.forEach((grp, idx) => {
-        const fullText = grp.lines.join('\n');
-        const chosenImg = pickImageForQuestion(grp, idx);
-
-        // Kiểm tra có ý a), b), c), d) kiểu Đúng/Sai không
-        const hasSubABCD = /(?:^|\n)\s*[a-d]\s*[\).]/i.test(fullText);
-        const hasOptABCD = /(?:^|\n)\s*A\s*[\).]/i.test(fullText) && /(?:^|\n)\s*B\s*[\).]/i.test(fullText);
-
-        if (hasSubABCD && !hasOptABCD) {
-          const parts = fullText.split(/(?:^|\n)\s*([a-d])\s*[\).]/i);
-          const prompt = String(parts[0] || `Câu ${idx + 1}`).replace(/^(?:câu|question)\s*\d+\s*[:.)]\s*/i, '').trim() || `Câu ${idx + 1}`;
-          const statements = [];
-          for (let i = 1; i < parts.length; i += 2) {
-            const stText = String(parts[i + 1] || '').trim();
-            if (stText && statements.length < 4) {
-              statements.push({ text: stText, isTrue: false });
-            }
-          }
-          while (statements.length < 4) {
-            statements.push({ text: '', isTrue: false });
-          }
-          tfQuestions.push({
-            id: `ai-tf-${Date.now()}-${idx}`,
-            prompt,
-            image: chosenImg,
-            images: chosenImg ? [chosenImg] : [],
-            statements,
-            explanation: ''
-          });
-          return;
-        }
-
-        if (hasOptABCD) {
-          const firstAIdx = fullText.search(/(?:^|\n)\s*A\s*[\).]/);
-          const promptPart = firstAIdx > 0 ? fullText.slice(0, firstAIdx) : fullText;
-          const prompt = promptPart.replace(/^(?:câu|question)\s*\d+\s*[:.)]\s*/i, '').trim() || `Câu ${idx + 1}`;
-          const afterA = firstAIdx >= 0 ? fullText.slice(firstAIdx) : '';
-          const optMatches = afterA.split(/(?:^|\n)\s*[A-D]\s*[\).]/).slice(1).map(s => s.trim());
-          const options = [
-            optMatches[0] || '',
-            optMatches[1] || '',
-            optMatches[2] || '',
-            optMatches[3] || ''
-          ];
-          mcqQuestions.push({
-            id: `ai-mcq-${Date.now()}-${idx}`,
-            prompt,
-            image: chosenImg,
-            images: chosenImg ? [chosenImg] : [],
-            options,
-            correctIndex: 0,
-            explanation: ''
-          });
-          return;
-        }
-
-        // Mặc định đưa vào Phần III trả lời ngắn (hoặc dễ dàng chỉnh sửa lại)
-        shortQuestions.push({
-          id: `ai-sa-${Date.now()}-${idx}`,
-          prompt: fullText.replace(/^(?:câu|question)\s*\d+\s*[:.)]\s*/i, '').trim() || `Câu ${idx + 1}`,
-          image: chosenImg,
-          images: chosenImg ? [chosenImg] : [],
-          answer: '',
-          explanation: ''
-        });
-      });
-
-      return { mcqQuestions, tfQuestions, shortQuestions };
-    }
-
-    async function callGeminiParseQuestions(apiKey, rawText, pageImages) {
+    async function callGeminiVisionForImage(apiKey, imageDataUrl, croppedExperimentImg, idx) {
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
-      const promptText = `Bạn là trợ lý bóc tách đề thi trắc nghiệm Việt Nam (THPT Quốc Gia).
-Hãy phân tích nội dung đề sau và trả về DUY NHẤT một JSON hợp lệ (không markdown fence) theo cấu trúc:
+      const commaIdx = imageDataUrl.indexOf(',');
+      const mimeMatch = imageDataUrl.slice(0, commaIdx).match(/data:(image\/[a-zA-Z0-9.+-]+);base64/);
+      const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+      const base64Data = imageDataUrl.slice(commaIdx + 1);
+
+      const promptText = `Bạn là trợ lý quét đề thi trắc nghiệm Việt Nam (THPT Quốc Gia).
+Hãy quan sát hình ảnh câu hỏi này và trả về DUY NHẤT một JSON hợp lệ (không markdown) theo dạng:
 {
-  "mcqQuestions": [{"prompt": "...", "options": ["A", "B", "C", "D"], "correctIndex": 0, "explanation": ""}],
-  "tfQuestions": [{"prompt": "...", "statements": [{"text": "ý a", "isTrue": true}, {"text": "ý b", "isTrue": false}, {"text": "ý c", "isTrue": true}, {"text": "ý d", "isTrue": false}], "explanation": ""}],
-  "shortQuestions": [{"prompt": "...", "answer": "", "explanation": ""}]
-}
-Nội dung đề:
-${String(rawText || '').slice(0, 24000)}`;
+  "kind": "mcq" | "tf" | "short",
+  "prompt": "Nội dung câu hỏi (nếu trong ảnh có hình thí nghiệm/hình vẽ riêng, hãy ghi rõ phần dẫn câu hỏi)",
+  "options": ["A", "B", "C", "D"],
+  "correctIndex": 0,
+  "statements": [{"text": "ý a", "isTrue": true}, {"text": "ý b", "isTrue": false}, {"text": "ý c", "isTrue": true}, {"text": "ý d", "isTrue": false}],
+  "answer": "đáp án ngắn nếu là kind short",
+  "explanation": ""
+}`;
 
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: promptText }] }]
+          contents: [{
+            parts: [
+              { inlineData: { mimeType, data: base64Data } },
+              { text: promptText }
+            ]
+          }]
         })
       });
-      if (!res.ok) {
-        throw new Error(`Gemini HTTP ${res.status}`);
-      }
+      if (!res.ok) throw new Error(`Gemini Vision HTTP ${res.status}`);
       const data = await res.json();
       const rawReply = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
       const jsonMatch = rawReply.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error('Không đọc được JSON từ Gemini');
+      if (!jsonMatch) throw new Error('Không đọc được JSON từ Gemini Vision');
       const parsed = JSON.parse(jsonMatch[0]);
 
-      const attachImages = (arr, offsetIdx) => (Array.isArray(arr) ? arr : []).map((item, i) => {
-        const img = pageImages[i + offsetIdx] || '';
-        return {
-          ...item,
-          image: img,
-          images: img ? [img] : []
-        };
-      });
-
-      const mcq = attachImages(parsed.mcqQuestions, 0);
-      const tf = attachImages(parsed.tfQuestions, mcq.length);
-      const short = attachImages(parsed.shortQuestions, mcq.length + tf.length);
-      return { mcqQuestions: mcq, tfQuestions: tf, shortQuestions: short };
+      return {
+        kind: parsed.kind || 'mcq',
+        prompt: parsed.prompt || `Câu ${idx + 1}`,
+        image: croppedExperimentImg || '',
+        options: Array.isArray(parsed.options) && parsed.options.length === 4 ? parsed.options : ['', '', '', ''],
+        correctIndex: Number(parsed.correctIndex ?? 0),
+        statements: Array.isArray(parsed.statements) && parsed.statements.length === 4
+          ? parsed.statements
+          : [{ text: '', isTrue: true }, { text: '', isTrue: false }, { text: '', isTrue: true }, { text: '', isTrue: false }],
+        answer: parsed.answer || '',
+        explanation: parsed.explanation || ''
+      };
     }
 
-    function renderAiParsedQuestionsToEditor(parsed) {
-      const mcqWrap = document.getElementById('aiMcqList');
-      const tfWrap = document.getElementById('aiTfList');
-      const shortWrap = document.getElementById('aiShortList');
-      const badge = document.getElementById('aiReviewSummaryBadge');
+    async function scanImagesAndPopulateCards(imageDataUrls) {
+      const statusEl = document.getElementById('aiScanStatus');
+      const mcqWrap = document.getElementById('aiScanMcqList');
+      const tfWrap = document.getElementById('aiScanTfList');
+      const shortWrap = document.getElementById('aiScanShortList');
+      const apiKey = String(document.getElementById('editorGeminiVisionKey')?.value || '').trim();
 
       mcqWrap.innerHTML = '';
       tfWrap.innerHTML = '';
       shortWrap.innerHTML = '';
 
-      (parsed.mcqQuestions || []).forEach(q => addEditorMcqQuestion(q));
-      (parsed.tfQuestions || []).forEach(q => addEditorTfQuestion(q));
-      (parsed.shortQuestions || []).forEach(q => addEditorShortQuestion(q));
+      for (let i = 0; i < imageDataUrls.length; i++) {
+        statusEl.textContent = `AI đang quét ảnh ${i + 1}/${imageDataUrls.length} & tự cắt ảnh thí nghiệm...`;
+        const srcDataUrl = imageDataUrls[i];
+        const croppedImg = await autoCropExperimentRegionFromImage(srcDataUrl);
 
-      const total = (parsed.mcqQuestions || []).length + (parsed.tfQuestions || []).length + (parsed.shortQuestions || []).length;
-      if (badge) {
-        badge.textContent = `AI đã bóc tách ${total} câu (P.I: ${(parsed.mcqQuestions || []).length}, P.II: ${(parsed.tfQuestions || []).length}, P.III: ${(parsed.shortQuestions || []).length}) — Bạn có thể sửa câu, đổi ảnh hoặc đáp án ngay bên dưới.`;
-      }
-    }
-
-    async function reRunAiAnalysisOnLastFile() {
-      if (!lastUploadedDocPayload) {
-        showToast('Hãy chọn file Word (.docx) hoặc PDF (.pdf) trước.', true);
-        return;
-      }
-      await runAiAnalysisOnPayload(lastUploadedDocPayload);
-    }
-
-    async function runAiAnalysisOnPayload(payload) {
-      const statusEl = document.getElementById('wordFileStatus');
-      const apiKey = String(document.getElementById('editorGeminiApiKey')?.value || '').trim();
-      statusEl.textContent = apiKey
-        ? 'Đang gửi file cho Gemini AI bóc câu hỏi & chọn ảnh...'
-        : 'AI đang tự động phân tích câu hỏi & gắn ảnh minh họa...';
-
-      try {
-        let parsed = null;
+        let itemResult = null;
         if (apiKey) {
           try {
-            parsed = await callGeminiParseQuestions(apiKey, payload.rawText, payload.pageImages || []);
+            itemResult = await callGeminiVisionForImage(apiKey, srcDataUrl, croppedImg, i);
           } catch (gemErr) {
-            console.warn('Gemini fallback to local parser:', gemErr);
-            showToast('Gemini chưa phản hồi, tự động chuyển sang bộ bóc tách cục bộ.', true);
+            console.warn('Gemini Vision fallback:', gemErr);
           }
         }
-        if (!parsed) {
-          parsed = parseQuestionsFromRawBlocks(
-            payload.blocks || [],
-            payload.pageImages || [],
-            payload.embeddedImages || []
-          );
+
+        if (!itemResult) {
+          // Chế độ tự lập thẻ câu hỏi kèm ảnh thí nghiệm đã cắt sẵn để người dùng điền/sửa nhanh
+          itemResult = {
+            kind: 'mcq',
+            prompt: `Câu ${i + 1} (đã quét từ ảnh — hãy kiểm tra/sửa nội dung)`,
+            image: croppedImg || '',
+            options: ['', '', '', ''],
+            correctIndex: 0,
+            statements: [
+              { text: '', isTrue: true },
+              { text: '', isTrue: false },
+              { text: '', isTrue: true },
+              { text: '', isTrue: false }
+            ],
+            answer: '',
+            explanation: ''
+          };
         }
 
-        renderAiParsedQuestionsToEditor(parsed);
-        const total = (parsed.mcqQuestions || []).length + (parsed.tfQuestions || []).length + (parsed.shortQuestions || []).length;
-        statusEl.textContent = `Đã bóc tách ${total} câu & tự chọn ảnh. Hãy soát và sửa lại nếu cần.`;
-        showToast(`AI đã bóc tách xong ${total} câu hỏi!`);
-      } catch (err) {
-        console.error(err);
-        statusEl.textContent = 'Lỗi khi bóc tách file. Bạn có thể bấm "+ Thêm câu" để tự nhập.';
-        showToast('Có lỗi khi AI phân tích file.', true);
+        if (itemResult.kind === 'tf') {
+          addEditorTfQuestion(itemResult);
+        } else if (itemResult.kind === 'short') {
+          addEditorShortQuestion(itemResult);
+        } else {
+          addEditorMcqQuestion(itemResult);
+        }
       }
+
+      statusEl.textContent = `Đã quét ${imageDataUrls.length} ảnh, tự cắt ảnh thí nghiệm và lập sẵn thẻ câu hỏi — bạn có thể sửa trực tiếp bên dưới.`;
+      showToast(`Đã lập sẵn ${imageDataUrls.length} thẻ câu hỏi từ ảnh!`);
     }
 
-    async function handleDocOrPdfFileUpload(event) {
-      const file = event.target?.files?.[0];
-      if (!file) return;
+    async function handleAiScanImagesUpload(event) {
+      const files = Array.from(event.target?.files || []);
+      if (!files.length) return;
 
-      const statusEl = document.getElementById('wordFileStatus');
-      const nameBadge = document.getElementById('wordFileNameBadge');
-      const lowerName = file.name.toLowerCase();
-      statusEl.textContent = 'Đang đọc file & tối ưu ảnh (< 1MB)...';
+      const badge = document.getElementById('aiScanFilesBadge');
+      badge.textContent = `${files.length} ảnh đã chọn`;
 
-      try {
-        if (lowerName.endsWith('.pdf') || file.type === 'application/pdf') {
-          if (!window.pdfjsLib) {
-            throw new Error('Thư viện đọc PDF chưa tải xong');
-          }
-          const arrayBuffer = await file.arrayBuffer();
-          const pdfDoc = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-          const totalPages = pdfDoc.numPages;
-          const pageImages = [];
-          const blocks = [];
-          const textChunks = [];
-
-          for (let p = 1; p <= totalPages; p++) {
-            statusEl.textContent = `Đang đọc trang PDF ${p}/${totalPages}...`;
-            const page = await pdfDoc.getPage(p);
-            const viewport = page.getViewport({ scale: 1.2 });
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = Math.floor(viewport.width);
-            canvas.height = Math.floor(viewport.height);
-            await page.render({ canvasContext: ctx, viewport }).promise;
-            const rawPageDataUrl = canvas.toDataURL('image/jpeg', 0.7);
-            const compressedPage = await compressSingleImageToLimit(rawPageDataUrl, SAFE_STORED_IMAGE_BYTES);
-            pageImages.push(compressedPage || '');
-
-            try {
-              const txtContent = await page.getTextContent();
-              const pageStr = txtContent.items.map(it => it.str).join(' ').trim();
-              if (pageStr) {
-                textChunks.push(pageStr);
-                pageStr.split(/(?=(?:câu|question)\s*\d+\s*[:.)])/i).forEach(seg => {
-                  if (seg.trim()) {
-                    blocks.push({ type: 'text', text: seg.trim(), image: compressedPage || '', pageIdx: p - 1 });
-                  }
-                });
-              } else if (compressedPage) {
-                blocks.push({ type: 'image', text: `Câu ${p}`, image: compressedPage, pageIdx: p - 1 });
-              }
-            } catch (e) {
-              if (compressedPage) {
-                blocks.push({ type: 'image', text: `Câu ${p}`, image: compressedPage, pageIdx: p - 1 });
-              }
-            }
-          }
-
-          currentWordFileName = file.name;
-          if (!document.getElementById('editorTitle').value.trim()) {
-            document.getElementById('editorTitle').value = file.name.replace(/\.pdf$/i, '');
-          }
-          nameBadge.textContent = `File PDF: ${file.name}`;
-
-          lastUploadedDocPayload = {
-            rawText: textChunks.join('\n\n'),
-            blocks,
-            pageImages,
-            embeddedImages: []
-          };
-          await runAiAnalysisOnPayload(lastUploadedDocPayload);
-          return;
-        }
-
-        if (!window.mammoth) {
-          throw new Error('Thư viện đọc file Word chưa tải xong');
-        }
-        const arrayBuffer = await file.arrayBuffer();
-        const embeddedImages = [];
-        const blocks = [];
-
-        const htmlRes = await window.mammoth.convertToHtml(
-          { arrayBuffer },
-          {
-            convertImage: window.mammoth.images.imgElement((image) => {
-              return image.read('base64').then(async (imageBuffer) => {
-                const contentType = image.contentType || 'image/png';
-                const rawDataUrl = `data:${contentType};base64,${imageBuffer}`;
-                const compressed = await compressSingleImageToLimit(rawDataUrl, SAFE_STORED_IMAGE_BYTES);
-                if (compressed) embeddedImages.push(compressed);
-                return { src: compressed || '' };
-              });
-            })
-          }
-        );
-
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = htmlRes.value || '';
-        let pendingImg = '';
-        Array.from(tempDiv.children).forEach((el) => {
-          const imgEl = el.querySelector('img');
-          if (imgEl && imgEl.getAttribute('src')) {
-            pendingImg = imgEl.getAttribute('src');
-          }
-          const txt = (el.textContent || '').trim();
-          if (txt || pendingImg) {
-            blocks.push({
-              type: pendingImg ? 'mixed' : 'text',
-              text: txt,
-              image: pendingImg,
-              pageIdx: 0
-            });
-            pendingImg = '';
-          }
+      const dataUrls = [];
+      for (const file of files) {
+        if (!file.type.startsWith('image/')) continue;
+        const dataUrl = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(String(e.target?.result || ''));
+          reader.onerror = () => resolve('');
+          reader.readAsDataURL(file);
         });
-
-        const textResult = await window.mammoth.extractRawText({ arrayBuffer });
-        const extracted = String(textResult.value || '').trim();
-
-        currentWordFileName = file.name;
-        if (!document.getElementById('editorTitle').value.trim()) {
-          document.getElementById('editorTitle').value = file.name.replace(/\.docx$/i, '');
-        }
-        nameBadge.textContent = `File Word: ${file.name}`;
-
-        lastUploadedDocPayload = {
-          rawText: extracted,
-          blocks,
-          pageImages: [],
-          embeddedImages
-        };
-        await runAiAnalysisOnPayload(lastUploadedDocPayload);
-      } catch (err) {
-        console.error(err);
-        statusEl.textContent = 'Không đọc được file (hãy thử file .docx hoặc .pdf)';
-        showToast('Không thể đọc file này. Hãy đảm bảo file có đuôi .docx hoặc .pdf!', true);
+        if (dataUrl) dataUrls.push(dataUrl);
       }
+
+      lastScannedImageDataUrls = dataUrls;
+      await scanImagesAndPopulateCards(dataUrls);
+    }
+
+    async function reRunAiImageScan() {
+      if (!lastScannedImageDataUrls.length) {
+        showToast('Hãy chọn ảnh câu hỏi trước khi quét lại.', true);
+        return;
+      }
+      await scanImagesAndPopulateCards(lastScannedImageDataUrls);
     }
 
     function applyAdminPermissionsUI() {
@@ -3342,8 +3193,7 @@ ${String(rawText || '').slice(0, 24000)}`;
 
     function resetEditorForNewQuiz() {
       editingQuizId = null;
-      currentWordFileName = '';
-      lastUploadedDocPayload = null;
+      lastScannedImageDataUrls = [];
       document.getElementById('editorHeading').textContent = 'Tạo Mới';
       document.getElementById('editorTitle').value = '';
       document.getElementById('editorQuizType').value = 'exam';
@@ -3354,14 +3204,12 @@ ${String(rawText || '').slice(0, 24000)}`;
       document.getElementById('editorDescription').value = '';
       document.querySelectorAll('.editor-tag-checkbox').forEach(cb => { cb.checked = false; });
 
-      document.getElementById('editorWordFileInput').value = '';
-      document.getElementById('wordFileStatus').textContent = 'Chưa chọn file Word / PDF';
-      document.getElementById('wordFileNameBadge').textContent = '';
-      document.getElementById('aiReviewSummaryBadge').textContent =
-        'Khu vực soát & sửa câu hỏi (sau khi tải file, bạn có thể sửa câu, đổi ảnh, sửa đáp án)';
-      document.getElementById('aiMcqList').innerHTML = '';
-      document.getElementById('aiTfList').innerHTML = '';
-      document.getElementById('aiShortList').innerHTML = '';
+      document.getElementById('editorAiImagesInput').value = '';
+      document.getElementById('aiScanFilesBadge').textContent = '';
+      document.getElementById('aiScanStatus').textContent = 'Chưa chọn ảnh câu hỏi';
+      document.getElementById('aiScanMcqList').innerHTML = '';
+      document.getElementById('aiScanTfList').innerHTML = '';
+      document.getElementById('aiScanShortList').innerHTML = '';
 
       document.getElementById('editorMcqList').innerHTML = '';
       document.getElementById('editorTfList').innerHTML = '';
@@ -3404,7 +3252,7 @@ ${String(rawText || '').slice(0, 24000)}`;
     }
 
     // =========================================================================
-    // TRÌNH SOẠN & SOÁT TỪNG CÂU (PHẦN I, II, III) — 1 ẢNH / CÂU (< 1MB)
+    // TRÌNH SOẠN TỪNG CÂU (PHẦN I, II, III) — 1 ẢNH / CÂU (< 1MB)
     // =========================================================================
     async function handleQuestionSingleFileUpload(inputEl) {
       const file = inputEl?.files?.[0];
@@ -3494,7 +3342,7 @@ ${String(rawText || '').slice(0, 24000)}`;
       return `
         <div class="p-3 rounded-xl bg-white border border-slate-200 space-y-2">
           <div class="flex items-center justify-between gap-2 flex-wrap">
-            <span class="text-xs font-semibold text-slate-700">Ảnh minh họa (1 ảnh / câu, tự nén &lt; 1MB)</span>
+            <span class="text-xs font-semibold text-slate-700">Ảnh minh họa / ảnh thí nghiệm (1 ảnh / câu, tự nén &lt; 1MB)</span>
             <button type="button" onclick="clearQuestionSingleImage(this)"
               class="text-xs text-rose-700 hover:underline font-medium">
               Xóa ảnh
