@@ -153,7 +153,7 @@
 
     <!-- VIEW 1: Danh sách đề thi & Giới thiệu -->
     <section id="homeView">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
         <div>
           <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900">Danh Sách Đề Luyện Tập</h1>
           <p class="text-sm text-slate-600 mt-1">
@@ -176,6 +176,21 @@
             <option value="ALL">Tất cả loại đề</option>
             <option value="public">Ai cũng thi được</option>
             <option value="assigned">Chỉ tài khoản được cấp</option>
+          </select>
+
+          <select id="statusFilter" onchange="renderQuizList()"
+            class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="ALL">Tất cả trạng thái</option>
+            <option value="open">Đã mở thi</option>
+            <option value="closed">Chưa mở thi</option>
+          </select>
+
+          <select id="tagFilter" onchange="renderQuizList()"
+            class="px-3.5 py-2 rounded-xl border border-slate-300 bg-white text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="ALL">Tất cả nhãn</option>
+            <option value="Hot">Hot</option>
+            <option value="Nổi bật">Nổi bật</option>
+            <option value="Free">Free</option>
           </select>
         </div>
       </div>
@@ -232,11 +247,15 @@
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 mb-6">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
               <span id="activeQuizSubject" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
                 Môn
               </span>
               <span id="activeQuizMeta" class="text-xs text-slate-500"></span>
+              <button id="activeQuizCopyLinkBtn" type="button"
+                class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition">
+                Copy link đề
+              </button>
             </div>
             <h2 id="activeQuizTitle" class="text-xl sm:text-2xl font-bold text-slate-900 mt-1">Tiêu đề đề</h2>
           </div>
@@ -425,7 +444,7 @@
             </button>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
             <div class="sm:col-span-2">
               <label class="block text-xs font-semibold text-slate-700 mb-1">Tên đề thi *</label>
               <input id="editorTitle" type="text" placeholder="Ví dụ: Đề luyện tập Toán THPT QG số 01"
@@ -459,6 +478,35 @@
               <label class="block text-xs font-semibold text-slate-700 mb-1">Mô tả ngắn</label>
               <input id="editorDescription" type="text" placeholder="Mô tả nội dung trọng tâm của đề..."
                 class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+          </div>
+
+          <!-- Trạng thái mở đề & Gán nhiều nhãn -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Trạng thái mở đề</label>
+              <select id="editorExamStatus"
+                class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <option value="open">Đã mở thi</option>
+                <option value="closed">Chưa mở thi</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Gán nhãn (có thể chọn nhiều nhãn)</label>
+              <div class="flex flex-wrap items-center gap-2 pt-1 text-xs font-semibold">
+                <label class="inline-flex items-center gap-1.5 cursor-pointer px-2.5 py-1.5 rounded-lg border border-rose-200 bg-rose-50/70 text-rose-800">
+                  <input type="checkbox" value="Hot" class="editor-tag-checkbox accent-rose-600" />
+                  <span>Hot</span>
+                </label>
+                <label class="inline-flex items-center gap-1.5 cursor-pointer px-2.5 py-1.5 rounded-lg border border-amber-200 bg-amber-50/70 text-amber-800">
+                  <input type="checkbox" value="Nổi bật" class="editor-tag-checkbox accent-amber-600" />
+                  <span>Nổi bật</span>
+                </label>
+                <label class="inline-flex items-center gap-1.5 cursor-pointer px-2.5 py-1.5 rounded-lg border border-teal-200 bg-teal-50/70 text-teal-800">
+                  <input type="checkbox" value="Free" class="editor-tag-checkbox accent-teal-600" />
+                  <span>Free</span>
+                </label>
+              </div>
             </div>
           </div>
 
@@ -682,6 +730,8 @@
         title: 'Đề Luyện Tập Toán THPT Quốc Gia - Hàm Số & Hình Học',
         subject: 'Toán học',
         accessMode: 'public',
+        examStatus: 'open',
+        tags: ['Hot', 'Free'],
         description: 'Gồm Phần I trắc nghiệm 4 lựa chọn và Phần II Đúng/Sai chuẩn định dạng Bộ GD&ĐT.',
         durationMinutes: 15,
         mcqQuestions: [
@@ -719,6 +769,8 @@
         title: 'Đề Luyện Tập Tin Học THPT Quốc Gia - Thuật Toán & Cấu Trúc Dữ Liệu',
         subject: 'Tin học',
         accessMode: 'assigned',
+        examStatus: 'open',
+        tags: ['Nổi bật'],
         description: 'Ôn tập độ phức tạp thuật toán, mảng, vòng lặp và tư duy lập trình cơ bản.',
         durationMinutes: 15,
         mcqQuestions: [
@@ -760,6 +812,7 @@
     let usersCache = [];
     let historyCache = [];
     let cloudReady = false;
+    let directQuizOpened = false;
 
     let currentUser = null; // { name, email, isAdmin }
     let activeQuiz = null;
@@ -782,8 +835,34 @@
     }
 
     // =========================================================================
-    // 3. TIỆN ÍCH CHUẨN HÓA & BĂM MẬT KHẨU
+    // 3. TIỆN ÍCH CHUẨN HÓA, LINK ĐỀ THI, NHÃN & BĂM MẬT KHẨU
     // =========================================================================
+    function getQuizShareUrl(quizId) {
+      const cleanUrl = window.location.href.split('#')[0];
+      return `${cleanUrl}#quiz=${encodeURIComponent(quizId)}`;
+    }
+
+    function copyQuizShareLink(quizId) {
+      const link = getQuizShareUrl(quizId);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link)
+          .then(() => showToast('Đã sao chép link đề thi! Gửi trực tiếp cho học sinh.'))
+          .catch(() => showToast(link));
+      } else {
+        showToast(link);
+      }
+    }
+
+    function renderTagBadge(tag) {
+      const map = {
+        'Hot': 'bg-rose-50 text-rose-700 border-rose-200',
+        'Nổi bật': 'bg-amber-50 text-amber-800 border-amber-200',
+        'Free': 'bg-teal-50 text-teal-700 border-teal-200'
+      };
+      const cls = map[tag] || 'bg-slate-100 text-slate-700 border-slate-200';
+      return `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold border ${cls}">${escapeHtml(tag)}</span>`;
+    }
+
     function normalizeEmail(email) {
       return String(email || '').trim().toLowerCase();
     }
@@ -854,6 +933,22 @@
     // =========================================================================
     // 4. ĐỒNG BỘ DỮ LIỆU CLOUD FIRESTORE (ĐỀ THI, TÀI KHOẢN, LỊCH SỬ)
     // =========================================================================
+    function checkDirectQuizHash() {
+      if (directQuizOpened) return;
+      const hash = window.location.hash || '';
+      if (!hash.startsWith('#quiz=')) return;
+      const targetId = decodeURIComponent(hash.slice('#quiz='.length));
+      const found = quizzes.find(q => q.id === targetId);
+      if (!found) return;
+      directQuizOpened = true;
+      startQuiz(found.id, true);
+    }
+
+    window.addEventListener('hashchange', () => {
+      directQuizOpened = false;
+      checkDirectQuizHash();
+    });
+
     async function initCloudSync() {
       try {
         const metaRef = db.collection(COLLECTIONS.META).doc('bootstrap');
@@ -879,6 +974,7 @@
             if (!document.getElementById('adminView').classList.contains('hidden')) {
               renderAdminQuizList();
             }
+            checkDirectQuizHash();
           },
           (err) => {
             console.error('Firestore quizzes error:', err);
@@ -1149,6 +1245,10 @@
         clearInterval(quizTimerInterval);
         quizTimerInterval = null;
       }
+      directQuizOpened = false;
+      if (window.location.hash.startsWith('#quiz=')) {
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
       hideAllViews();
       document.getElementById('homeView').classList.remove('hidden');
       renderQuizList();
@@ -1192,18 +1292,24 @@
       const grid = document.getElementById('quizGrid');
       const filter = document.getElementById('subjectFilter').value;
       const accessFilter = document.getElementById('accessFilter')?.value || 'ALL';
+      const statusFilter = document.getElementById('statusFilter')?.value || 'ALL';
+      const tagFilter = document.getElementById('tagFilter')?.value || 'ALL';
 
       const filtered = quizzes.filter(q => {
         const matchSubject = filter === 'ALL' || q.subject === filter;
         const mode = q.accessMode || 'public';
         const matchAccess = accessFilter === 'ALL' || mode === accessFilter;
-        return matchSubject && matchAccess;
+        const status = q.examStatus || 'open';
+        const matchStatus = statusFilter === 'ALL' || status === statusFilter;
+        const tags = Array.isArray(q.tags) ? q.tags : [];
+        const matchTag = tagFilter === 'ALL' || tags.includes(tagFilter);
+        return matchSubject && matchAccess && matchStatus && matchTag;
       });
 
       if (!filtered.length) {
         grid.innerHTML = `
           <div class="col-span-full bg-white rounded-2xl border border-dashed border-slate-300 p-10 text-center">
-            <p class="text-slate-600 font-medium">${cloudReady ? 'Chưa có đề thi nào trong danh mục này.' : 'Đang tải danh sách đề từ Cloud...'}</p>
+            <p class="text-slate-600 font-medium">${cloudReady ? 'Chưa có đề thi nào khớp bộ lọc.' : 'Đang tải danh sách đề từ Cloud...'}</p>
             ${currentUser && currentUser.isAdmin
               ? `<button type="button" onclick="openAdminView()" class="mt-3 px-4 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold">Tạo đề thi mới</button>`
               : ''}
@@ -1216,7 +1322,22 @@
         const mcqCount = (quiz.mcqQuestions || []).length;
         const tfCount = (quiz.tfQuestions || []).length;
         const isAssigned = (quiz.accessMode || 'public') === 'assigned';
-        const canStart = !isAssigned || Boolean(currentUser);
+        const isOpen = (quiz.examStatus || 'open') === 'open';
+        const isAdmin = Boolean(currentUser && currentUser.isAdmin);
+        const tags = Array.isArray(quiz.tags) ? quiz.tags : [];
+
+        let btnText = 'Bắt đầu làm bài';
+        let btnClass = 'bg-indigo-600 hover:bg-indigo-700 text-white';
+        let disabledAttr = '';
+
+        if (!isOpen && !isAdmin) {
+          btnText = 'Chưa mở thi';
+          btnClass = 'bg-slate-200 text-slate-500 cursor-not-allowed';
+          disabledAttr = 'disabled';
+        } else if (isAssigned && !currentUser) {
+          btnText = 'Đăng nhập để làm đề này';
+          btnClass = 'bg-amber-600 hover:bg-amber-700 text-white';
+        }
 
         return `
           <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 flex flex-col justify-between hover:border-indigo-300 hover:shadow-md transition">
@@ -1226,12 +1347,22 @@
                   <span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-100">
                     ${escapeHtml(quiz.subject)}
                   </span>
-                  <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${isAssigned ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}">
+                  <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${isOpen ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-200'}">
+                    ${isOpen ? 'Đã mở thi' : 'Chưa mở thi'}
+                  </span>
+                  <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${isAssigned ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'bg-blue-50 text-blue-700 border border-blue-200'}">
                     ${isAssigned ? 'Chỉ tài khoản được cấp' : 'Ai cũng thi được'}
                   </span>
                 </div>
                 <span class="text-xs font-medium text-slate-500">⏱ ${Number(quiz.durationMinutes || 15)} phút</span>
               </div>
+
+              ${tags.length ? `
+                <div class="mt-2.5 flex flex-wrap gap-1.5">
+                  ${tags.map(t => renderTagBadge(t)).join('')}
+                </div>
+              ` : ''}
+
               <h3 class="text-lg font-bold text-slate-900 mt-3">${escapeHtml(quiz.title)}</h3>
               <p class="text-sm text-slate-600 mt-1.5 line-clamp-2">${escapeHtml(quiz.description || '')}</p>
               <div class="mt-4 flex flex-wrap gap-2 text-xs text-slate-600">
@@ -1239,26 +1370,45 @@
                 <span class="px-2.5 py-1 rounded-lg bg-slate-100">Phần II: ${tfCount} câu (Đúng/Sai)</span>
               </div>
             </div>
-            <button type="button" onclick="startQuiz('${escapeHtml(quiz.id)}')"
-              class="mt-6 w-full py-2.5 rounded-xl ${canStart ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-amber-600 hover:bg-amber-700'} text-white text-sm font-semibold shadow-sm transition">
-              ${canStart ? 'Bắt đầu làm bài' : 'Đăng nhập để làm đề này'}
-            </button>
+
+            <div class="mt-6 flex items-center gap-2">
+              <button type="button" ${disabledAttr} onclick="startQuiz('${escapeHtml(quiz.id)}')"
+                class="flex-1 py-2.5 px-3 rounded-xl ${btnClass} text-sm font-semibold shadow-sm transition">
+                ${btnText}
+              </button>
+              <button type="button" onclick="copyQuizShareLink('${escapeHtml(quiz.id)}')"
+                class="py-2.5 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition"
+                title="Sao chép link trực tiếp của đề thi này">
+                Copy link
+              </button>
+            </div>
           </div>
         `;
       }).join('');
     }
 
-    function startQuiz(quizId) {
+    function startQuiz(quizId, fromHash = false) {
       const found = quizzes.find(q => q.id === quizId);
       if (!found) {
         showToast('Không tìm thấy đề thi.', true);
         return;
       }
+
+      const isAdmin = Boolean(currentUser && currentUser.isAdmin);
+      if ((found.examStatus || 'open') === 'closed' && !isAdmin) {
+        showToast('Đề thi này hiện đang ở chế độ Chưa mở thi.', true);
+        if (fromHash) goHome();
+        return;
+      }
+
       if ((found.accessMode || 'public') === 'assigned' && !currentUser) {
         showToast('Đề này chỉ dành cho tài khoản đã được cấp. Vui lòng đăng nhập!', true);
+        if (fromHash) goHome();
         openAuthModal();
         return;
       }
+
+      window.location.hash = `quiz=${encodeURIComponent(found.id)}`;
       activeQuiz = JSON.parse(JSON.stringify(found));
       userAnswers = { mcq: {}, tf: {} };
       remainingSeconds = Math.max(1, Number(activeQuiz.durationMinutes || 15)) * 60;
@@ -1270,6 +1420,7 @@
       document.getElementById('activeQuizTitle').textContent = activeQuiz.title;
       document.getElementById('activeQuizMeta').textContent =
         `${(activeQuiz.mcqQuestions || []).length} câu Phần I • ${(activeQuiz.tfQuestions || []).length} câu Phần II`;
+      document.getElementById('activeQuizCopyLinkBtn').onclick = () => copyQuizShareLink(activeQuiz.id);
 
       renderQuizQuestions();
       updateQuizProgress();
@@ -1927,13 +2078,20 @@
 
       wrap.innerHTML = quizzes.map(q => {
         const modeLabel = (q.accessMode || 'public') === 'assigned' ? 'Chỉ tài khoản cấp' : 'Ai cũng thi';
+        const statusLabel = (q.examStatus || 'open') === 'open' ? 'Đã mở' : 'Chưa mở';
+        const tags = Array.isArray(q.tags) ? q.tags : [];
         return `
           <div class="p-3.5 rounded-xl border border-slate-200 flex items-center justify-between gap-3">
             <div class="min-w-0">
               <div class="text-sm font-bold text-slate-900 truncate">${escapeHtml(q.title)}</div>
-              <div class="text-xs text-slate-500">${escapeHtml(q.subject)} • ${modeLabel} • ${(q.mcqQuestions || []).length} câu P1 • ${(q.tfQuestions || []).length} câu P2</div>
+              <div class="text-xs text-slate-500">${escapeHtml(q.subject)} • ${statusLabel} • ${modeLabel} • ${(q.mcqQuestions || []).length} câu P1 • ${(q.tfQuestions || []).length} câu P2</div>
+              ${tags.length ? `<div class="mt-1 flex flex-wrap gap-1">${tags.map(t => renderTagBadge(t)).join('')}</div>` : ''}
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
+              <button type="button" onclick="copyQuizShareLink('${escapeHtml(q.id)}')"
+                class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700">
+                Link
+              </button>
               <button type="button" onclick="loadQuizIntoEditor('${escapeHtml(q.id)}')"
                 class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700">
                 Sửa
@@ -1954,8 +2112,10 @@
       document.getElementById('editorTitle').value = '';
       document.getElementById('editorSubject').value = 'Toán học';
       document.getElementById('editorAccessMode').value = 'public';
+      document.getElementById('editorExamStatus').value = 'open';
       document.getElementById('editorDuration').value = '15';
       document.getElementById('editorDescription').value = '';
+      document.querySelectorAll('.editor-tag-checkbox').forEach(cb => { cb.checked = false; });
       document.getElementById('editorMcqList').innerHTML = '';
       document.getElementById('editorTfList').innerHTML = '';
       addEditorMcqQuestion();
@@ -1970,8 +2130,14 @@
       document.getElementById('editorTitle').value = q.title;
       document.getElementById('editorSubject').value = q.subject;
       document.getElementById('editorAccessMode').value = q.accessMode || 'public';
+      document.getElementById('editorExamStatus').value = q.examStatus || 'open';
       document.getElementById('editorDuration').value = String(q.durationMinutes || 15);
       document.getElementById('editorDescription').value = q.description || '';
+
+      const qTags = Array.isArray(q.tags) ? q.tags : [];
+      document.querySelectorAll('.editor-tag-checkbox').forEach(cb => {
+        cb.checked = qTags.includes(cb.value);
+      });
 
       const mcqWrap = document.getElementById('editorMcqList');
       mcqWrap.innerHTML = '';
@@ -2082,6 +2248,8 @@
       const title = document.getElementById('editorTitle').value.trim();
       const subject = document.getElementById('editorSubject').value;
       const accessMode = document.getElementById('editorAccessMode')?.value || 'public';
+      const examStatus = document.getElementById('editorExamStatus')?.value || 'open';
+      const tags = Array.from(document.querySelectorAll('.editor-tag-checkbox:checked')).map(cb => cb.value);
       const durationMinutes = Math.max(1, Number(document.getElementById('editorDuration').value || 15));
       const description = document.getElementById('editorDescription').value.trim();
 
@@ -2140,6 +2308,8 @@
         title,
         subject,
         accessMode,
+        examStatus,
+        tags,
         description: description || `Đề luyện tập môn ${subject}`,
         durationMinutes,
         mcqQuestions,
