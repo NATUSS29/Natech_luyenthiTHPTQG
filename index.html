@@ -1410,6 +1410,14 @@
       return Boolean(user && isPrimaryAdminEmail(user.email));
     }
 
+    // Super Admin quản lý mọi đề; Admin thường chỉ quản lý đề do chính mình tạo.
+    function canManageQuiz(quiz, user = currentUser) {
+      if (!user || !user.isAdmin || !quiz) return false;
+      if (canManageAccounts(user)) return true;
+      return normalizeEmail(quiz.creatorEmail) !== ''
+        && normalizeEmail(quiz.creatorEmail) === normalizeEmail(user.email);
+    }
+
     function isAdminEmail(email, userObj = null) {
       const clean = normalizeEmail(email);
       if (isPrimaryAdminEmail(clean)) return true;
@@ -3594,7 +3602,16 @@
         return;
       }
 
-      wrap.innerHTML = quizzes.map(q => {
+      const manageableQuizzes = canManageAccounts()
+        ? quizzes
+        : quizzes.filter(q => canManageQuiz(q));
+
+      if (!manageableQuizzes.length) {
+        wrap.innerHTML = `<div class="p-4 rounded-xl border border-dashed border-slate-300 text-xs text-slate-600 text-center">Bạn chưa tạo đề thi hoặc bài tập nào.</div>`;
+        return;
+      }
+
+      wrap.innerHTML = manageableQuizzes.map(q => {
         const isAssigned = (q.accessMode || 'public') === 'assigned';
         const statusLabel = (q.examStatus || 'open') === 'open' ? 'Đã mở' : 'Chưa mở';
         const typeLabel = (q.quizType || 'exam') === 'practice' ? 'Bài tập' : 'Đề thi';
@@ -3667,6 +3684,10 @@
     function loadQuizIntoEditor(quizId) {
       const q = quizzes.find(item => item.id === quizId);
       if (!q) return;
+      if (!canManageQuiz(q)) {
+        showToast('Bạn chỉ được sửa đề thi / bài tập do chính mình tạo.', true);
+        return;
+      }
       editingQuizId = q.id;
       document.getElementById('editorHeading').textContent = `Chỉnh sửa: ${q.title}`;
       document.getElementById('editorTitle').value = q.title;
@@ -4036,6 +4057,19 @@
       }
 
       const quizId = editingQuizId || `quiz-${Date.now()}`;
+      const existingQuiz = editingQuizId
+        ? quizzes.find(q => q.id === editingQuizId)
+        : null;
+
+      if (editingQuizId && (!existingQuiz || !canManageQuiz(existingQuiz))) {
+        showToast('Bạn không có quyền chỉnh sửa đề này.', true);
+        return;
+      }
+
+      // Giữ nguyên chủ sở hữu khi sửa; đề mới thuộc về tài khoản đang đăng nhập.
+      const quizCreatorEmail = existingQuiz?.creatorEmail
+        ? normalizeEmail(existingQuiz.creatorEmail)
+        : normalizeEmail(currentUser.email);
 
       if (currentEditorMode === 'word') {
         const wordExternalUrl = document.getElementById('editorWordExternalUrl').value.trim();
@@ -4095,6 +4129,7 @@
 
         const quizObj = {
           id: quizId,
+          creatorEmail: quizCreatorEmail,
           quizFormat: 'word',
           wordFileName: currentWordFileName || '',
           wordExternalUrl,
@@ -4203,6 +4238,7 @@
 
       const quizObj = {
         id: quizId,
+        creatorEmail: quizCreatorEmail,
         quizFormat: 'standard',
         title,
         quizType,
@@ -4231,6 +4267,10 @@
     function confirmDeleteQuiz(quizId) {
       const target = quizzes.find(q => q.id === quizId);
       if (!target) return;
+      if (!canManageQuiz(target)) {
+        showToast('Bạn chỉ được xóa đề thi / bài tập do chính mình tạo.', true);
+        return;
+      }
       openConfirmModal(
         'Xóa mục này',
         `Bạn có chắc chắn muốn xóa "${target.title}"? Dữ liệu sẽ bị xóa khỏi tất cả các thiết bị.`,
