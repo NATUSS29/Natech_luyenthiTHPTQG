@@ -448,6 +448,20 @@
       </div>
     </section>
 
+    <!-- TRANG QUẢN LÝ ĐỀ (TÁCH RIÊNG) -->
+    <section id="adminQuizManageView" class="hidden space-y-4">
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
+        <div class="flex items-center justify-between flex-wrap gap-2"><h2 class="text-xl font-extrabold">Danh sách đề đã tạo</h2><button onclick="openAdminView()" class="px-3 py-2 rounded-xl bg-blue-700 text-white text-xs font-bold">Soạn đề / Tạo mới</button></div>
+        <input id="adminQuizSearch" oninput="renderAdminQuizList()" placeholder="Tìm tên đề, môn, mô tả..." class="w-full px-3 py-2 border rounded-xl text-sm" />
+        <div id="adminQuizList" class="space-y-2.5"></div><button onclick="goHome()" class="px-3 py-2 rounded-xl bg-slate-100 text-sm">Trang chủ</button>
+      </div>
+    </section>
+    <section id="adminAccountsView" class="hidden space-y-4">
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4"><h2 class="text-xl font-extrabold">Cấp tài khoản</h2><div id="accountManagementCard" class="space-y-4">
+        <form id="createStudentForm" onsubmit="handleCreateStudentAccount(event)" class="space-y-2.5"><input id="studentNameInput" type="text" placeholder="Họ và tên" required class="w-full px-3 py-2 rounded-xl border text-xs"/><input id="studentEmailInput" type="email" placeholder="Gmail" required class="w-full px-3 py-2 rounded-xl border text-xs"/><input id="studentPasswordInput" type="password" placeholder="Mật khẩu (tối thiểu 6 ký tự)" required class="w-full px-3 py-2 rounded-xl border text-xs"/><label class="flex gap-2 text-xs"><input id="studentGrantAdminCheckbox" type="checkbox"/> Cấp quyền Admin (chỉ tạo đề)</label><p id="studentCreateError" class="hidden text-xs text-rose-700"></p><button class="w-full py-2 rounded-xl bg-blue-700 text-white text-xs font-bold">Tạo tài khoản</button></form>
+        <div id="studentAccountsList" class="space-y-2 max-h-72 overflow-y-auto text-xs"></div></div><button onclick="goHome()" class="px-3 py-2 rounded-xl bg-slate-100 text-sm">Trang chủ</button>
+      </div>
+    </section>
     <!-- QUẢN TRỊ ADMIN -->
     <section id="adminView" class="hidden space-y-6">
       <div class="bg-white rounded-2xl border border-slate-200 p-5 flex items-center justify-between gap-3 flex-wrap">
@@ -468,36 +482,7 @@
       </div>
 
       <div id="adminMainGrid" class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <div id="adminLeftColumn" class="lg:col-span-5 space-y-6 h-fit">
-          <!-- QUẢN LÝ TÀI KHOẢN (CHỈ SUPER ADMIN) -->
-          <div id="accountManagementCard" class="hidden bg-white rounded-2xl border border-slate-200 p-5 space-y-4">
-            <h3 class="text-base font-extrabold text-slate-900">Cấp tài khoản</h3>
-            <form id="createStudentForm" onsubmit="handleCreateStudentAccount(event)" class="space-y-2.5">
-              <input id="studentNameInput" type="text" placeholder="Họ và tên" required
-                class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs" />
-              <input id="studentEmailInput" type="email" placeholder="Gmail (ví dụ: hocsinh@gmail.com)" required
-                class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs" />
-              <input id="studentPasswordInput" type="password" placeholder="Mật khẩu (tối thiểu 6 ký tự)" required
-                class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs" />
-              <label class="flex items-center gap-2 text-xs text-slate-700">
-                <input id="studentGrantAdminCheckbox" type="checkbox" class="accent-blue-700" />
-                <span>Cấp quyền Admin (chỉ tạo đề)</span>
-              </label>
-              <p id="studentCreateError" class="hidden text-xs text-rose-700 font-medium"></p>
-              <button type="submit"
-                class="w-full py-2 rounded-xl bg-blue-700 hover:bg-blue-800 text-white text-xs font-bold">
-                Tạo tài khoản
-              </button>
-            </form>
-            <div id="studentAccountsList" class="space-y-2 max-h-72 overflow-y-auto text-xs"></div>
-          </div>
-
-          <!-- DANH SÁCH ĐỀ ĐÃ TẠO -->
-          <div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-            <h3 class="text-base font-extrabold text-slate-900">Danh sách đề đã tạo</h3>
-            <div id="adminQuizList" class="space-y-2.5 max-h-[520px] overflow-y-auto"></div>
-          </div>
-        </div>
+        <div id="adminLeftColumn" class="lg:col-span-3 space-y-3 h-fit"><button onclick="openAdminQuizManageView()" class="w-full p-4 bg-white border rounded-2xl text-left font-bold">📚 Danh sách đề đã tạo &amp; tìm kiếm</button><button id="adminAccountsShortcut" onclick="openAdminAccountsView()" class="hidden w-full p-4 bg-white border rounded-2xl text-left font-bold">👥 Cấp tài khoản</button></div>
 
         <!-- TRÌNH SOẠN ĐỀ -->
         <div id="adminRightColumn" class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 space-y-6">
@@ -583,7 +568,7 @@
                 <p class="text-xs text-slate-600 mt-1">Mỗi dòng là một câu hỏi. Hệ thống tự nhận dạng và thêm vào đúng Phần I, II hoặc III.</p>
               </div>
               <textarea id="questionSyntaxInput" rows="5"
-                placeholder="#tracnghiem|Nội dung câu hỏi?|Phương án A|Phương án B|Phương án C|Phương án D&#10;#dungsai|Nội dung câu hỏi?|Ý 1|Ý 2|Ý 3|Ý 4&#10;#traloingan|Nội dung câu hỏi"
+                placeholder="#tracnghiem|A|Nội dung câu hỏi?|Phương án A|Phương án B|Phương án C|Phương án D&#10;#dungsai|Đ-S-S-Đ|Nội dung câu hỏi?|Ý 1|Ý 2|Ý 3|Ý 4&#10;#traloingan|5;5,0|Nội dung câu hỏi"
                 class="w-full px-3 py-2 rounded-xl border border-indigo-200 bg-white text-xs font-mono"></textarea>
               <div class="flex flex-wrap items-center gap-2">
                 <button type="button" onclick="addQuestionsFromSyntax()"
@@ -1832,7 +1817,7 @@
     // 6. ĐIỀU HƯỚNG MÀN HÌNH & THỐNG KÊ
     // =========================================================================
     function hideAllViews() {
-      ['homeView', 'quizDetailView', 'quizView', 'resultView', 'historyView', 'adminView'].forEach(id => {
+      ['homeView', 'quizDetailView', 'quizView', 'resultView', 'historyView', 'adminView', 'adminQuizManageView', 'adminAccountsView'].forEach(id => {
         document.getElementById(id).classList.add('hidden');
       });
     }
@@ -1996,6 +1981,7 @@
               </div>
             </div>
 
+            ${currentUser && currentUser.isAdmin && canManageQuiz(quiz) ? `<div class="flex gap-2" onclick="event.stopPropagation()"><button onclick="loadQuizIntoEditor('${escapeHtml(quiz.id)}')" class="flex-1 px-3 py-2 rounded-lg bg-blue-100 text-blue-900 text-xs font-bold">Sửa đề</button><button onclick="confirmDeleteQuiz('${escapeHtml(quiz.id)}')" class="px-3 py-2 rounded-lg bg-rose-100 text-rose-900 text-xs font-bold">Xóa</button></div>` : ''}
             <div class="mt-4 pt-3 border-t border-slate-200 space-y-2.5">
               <div class="flex items-center justify-between text-xs text-slate-700 font-medium flex-wrap gap-1">
                 <span>P.I: <strong>${mcqCount}</strong></span>
@@ -3329,9 +3315,9 @@
       const leftCol = document.getElementById('adminLeftColumn');
       const rightCol = document.getElementById('adminRightColumn');
 
-      if (accountCard) {
-        accountCard.classList.toggle('hidden', !canManageAcc);
-      }
+      if (accountCard) accountCard.classList.toggle('hidden', !canManageAcc);
+      const accountShortcut = document.getElementById('adminAccountsShortcut');
+      if (accountShortcut) accountShortcut.classList.toggle('hidden', !canManageAcc);
 
       if (mainGrid && leftCol && rightCol) {
         if (canManageAcc) {
@@ -3343,6 +3329,9 @@
         }
       }
     }
+
+    function openAdminQuizManageView() { if (!currentUser || !currentUser.isAdmin) { showToast('Chỉ Admin mới truy cập được.', true); return; } hideAllViews(); document.getElementById('adminQuizManageView').classList.remove('hidden'); renderAdminQuizList(); }
+    function openAdminAccountsView() { if (!canManageAccounts()) { showToast('Chỉ Super Admin được cấp tài khoản.', true); return; } hideAllViews(); document.getElementById('adminAccountsView').classList.remove('hidden'); renderStudentAccountsList(); }
 
     function openAdminView() {
       if (!currentUser || !currentUser.isAdmin) {
@@ -3597,14 +3586,14 @@
 
     function renderAdminQuizList() {
       const wrap = document.getElementById('adminQuizList');
+      if (!wrap) return;
+      const query = (document.getElementById('adminQuizSearch')?.value || '').trim().toLowerCase();
       if (!quizzes.length) {
         wrap.innerHTML = `<div class="p-4 rounded-xl border border-dashed border-slate-300 text-xs text-slate-600 text-center">Hiện chưa có mục nào trong danh sách.</div>`;
         return;
       }
 
-      const manageableQuizzes = canManageAccounts()
-        ? quizzes
-        : quizzes.filter(q => canManageQuiz(q));
+      const manageableQuizzes = (canManageAccounts() ? quizzes : quizzes.filter(q => canManageQuiz(q))).filter(q => !query || [q.title,q.subject,q.description].some(v => String(v||'').toLowerCase().includes(query)));
 
       if (!manageableQuizzes.length) {
         wrap.innerHTML = `<div class="p-4 rounded-xl border border-dashed border-slate-300 text-xs text-slate-600 text-center">Bạn chưa tạo đề thi hoặc bài tập nào.</div>`;
@@ -3739,6 +3728,10 @@
         (q.shortQuestions || []).forEach(item => addEditorShortQuestion(item));
         setEditorMode('standard');
       }
+      // Chuyển về khu vực soạn đề sau khi đã nạp dữ liệu; editingQuizId
+      // giúp openAdminView không reset nội dung vừa nạp.
+      openAdminView();
+      document.getElementById('adminRightColumn')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     // =========================================================================
@@ -3867,6 +3860,8 @@
       lines.forEach((line, index) => {
         const parts = line.split('|').map(part => part.trim());
         const type = (parts.shift() || '').toLowerCase();
+        let answerToken = '';
+        if (type === '#tracnghiem' || type === '#dungsai' || type === '#traloingan') answerToken = parts.shift() || '';
         const prompt = parts.shift() || '';
         if (!prompt) {
           errors.push(`Dòng ${index + 1}: thiếu nội dung câu hỏi.`);
@@ -3874,28 +3869,28 @@
         }
 
         if (type === '#tracnghiem') {
-          if (parts.length !== 4 || parts.some(value => !value)) {
-            errors.push(`Dòng ${index + 1}: #tracnghiem cần đúng 4 phương án A, B, C, D.`);
+          if (parts.length !== 4 || parts.some(value => !value) || !/^[ABCD]$/i.test(answerToken)) {
+            errors.push(`Dòng ${index + 1}: #tracnghiem|A/B/C/D|Nội dung|4 phương án.`);
             return;
           }
-          addEditorMcqQuestion({ prompt, options: parts, correctIndex: 0 });
+          addEditorMcqQuestion({ prompt, options: parts, correctIndex: 'ABCD'.indexOf(answerToken.toUpperCase()) });
           added++;
         } else if (type === '#dungsai') {
-          if (parts.length !== 4 || parts.some(value => !value)) {
-            errors.push(`Dòng ${index + 1}: #dungsai cần đúng 4 ý.`);
+          if (parts.length !== 4 || parts.some(value => !value) || !/^[ĐDSSTFTRUEFALSE-]{4}$/i.test(answerToken.replace(/-/g,'')) || answerToken.replace(/-/g,'').length !== 4) {
+            errors.push(`Dòng ${index + 1}: #dungsai|Đ-S-S-Đ|Nội dung|4 ý.`);
             return;
           }
           addEditorTfQuestion({
             prompt,
-            statements: parts.map((text, i) => ({ text, isTrue: i % 2 === 0 }))
+            statements: parts.map((text, i) => ({ text, isTrue: /^(đ|d|true|t)$/i.test(answerToken.replace(/-/g,'')[i]) }))
           });
           added++;
         } else if (type === '#traloingan') {
-          if (parts.length) {
-            errors.push(`Dòng ${index + 1}: #traloingan chỉ nhận nội dung câu hỏi, không thêm dấu |.`);
+          if (!answerToken) {
+            errors.push(`Dòng ${index + 1}: #traloingan|đáp án|Nội dung câu hỏi.`);
             return;
           }
-          addEditorShortQuestion({ prompt, answer: '' });
+          addEditorShortQuestion({ prompt, answer: answerToken });
           added++;
         } else {
           errors.push(`Dòng ${index + 1}: cú pháp không hợp lệ (${type || 'trống'}).`);
@@ -3905,6 +3900,20 @@
       status.classList.remove('hidden');
       status.className = `text-xs font-semibold ${added ? 'text-emerald-700' : 'text-rose-700'}`;
       status.textContent = `${added} câu đã được thêm.${errors.length ? ' ' + errors.join(' ') : ''}`;
+    }
+
+    function renumberEditorQuestions() {
+      [['editorMcqList', 'editor-mcq-item', 'Câu'], ['editorTfList', 'editor-tf-item', 'Câu'], ['editorShortList', 'editor-short-item', 'Câu']].forEach(([wrapId, cls, label]) => {
+        const cards = document.getElementById(wrapId)?.querySelectorAll('.' + cls) || [];
+        cards.forEach((card, idx) => {
+          const heading = card.querySelector('.editor-question-number');
+          if (heading) heading.textContent = `${label} ${idx + 1}`;
+        });
+      });
+    }
+    function deleteEditorQuestion(button) {
+      button.closest('.editor-question-card')?.remove();
+      renumberEditorQuestions();
     }
 
     function addEditorMcqQuestion(data = null) {
@@ -3918,7 +3927,7 @@
 
       card.innerHTML = `
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-bold text-blue-900">Câu hỏi trắc nghiệm (A, B, C, D)</span>
+          <span class="text-xs font-bold text-blue-900"><span class="editor-question-number">Câu</span> — Trắc nghiệm (A, B, C, D)</span>
           <div class="flex items-center gap-2">
             <label class="text-xs font-semibold text-slate-700">Đáp án đúng:</label>
             <select class="px-2.5 py-1 rounded-lg border border-emerald-300 bg-emerald-100 text-emerald-950 text-xs font-bold mcq-correct-select">
@@ -3927,7 +3936,7 @@
               <option value="2" ${correct === 2 ? 'selected' : ''}>C</option>
               <option value="3" ${correct === 3 ? 'selected' : ''}>D</option>
             </select>
-            <button type="button" onclick="this.closest('.editor-mcq-item').remove()" class="text-xs text-rose-700 hover:underline ml-1">Xóa câu</button>
+            <button type="button" onclick="deleteEditorQuestion(this)" class="text-xs text-rose-700 hover:underline ml-1">Xóa câu</button>
           </div>
         </div>
         <input type="text" placeholder="Nội dung câu hỏi..." value="${escapeHtml(data?.prompt || '')}"
@@ -3957,6 +3966,7 @@
       });
 
       wrap.appendChild(card);
+      renumberEditorQuestions();
       updateQuestionImagePreview(card);
     }
 
@@ -3975,8 +3985,8 @@
 
       card.innerHTML = `
         <div class="flex items-center justify-between">
-          <span class="text-xs font-bold text-emerald-800">Câu hỏi Đúng / Sai (4 ý a, b, c, d)</span>
-          <button type="button" onclick="this.closest('.editor-tf-item').remove()" class="text-xs text-rose-700 hover:underline">Xóa câu</button>
+          <span class="text-xs font-bold text-emerald-800"><span class="editor-question-number">Câu</span> — Đúng / Sai (4 ý a, b, c, d)</span>
+          <button type="button" onclick="deleteEditorQuestion(this)" class="text-xs text-rose-700 hover:underline">Xóa câu</button>
         </div>
         <input type="text" placeholder="Phần dẫn chung của câu hỏi..." value="${escapeHtml(data?.prompt || '')}"
           class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm tf-prompt" />
@@ -4001,6 +4011,7 @@
           class="w-full px-3 py-1.5 rounded-lg border border-slate-300 text-xs tf-expl" />
       `;
       wrap.appendChild(card);
+      renumberEditorQuestions();
       updateQuestionImagePreview(card);
     }
 
@@ -4012,8 +4023,8 @@
 
       card.innerHTML = `
         <div class="flex items-center justify-between gap-2">
-          <span class="text-xs font-bold text-amber-900">Câu trả lời ngắn (Điền đáp án)</span>
-          <button type="button" onclick="this.closest('.editor-short-item').remove()" class="text-xs text-rose-700 hover:underline">Xóa câu</button>
+          <span class="text-xs font-bold text-amber-900"><span class="editor-question-number">Câu</span> — Trả lời ngắn (Điền đáp án)</span>
+          <button type="button" onclick="deleteEditorQuestion(this)" class="text-xs text-rose-700 hover:underline">Xóa câu</button>
         </div>
         <input type="text" placeholder="Nội dung câu hỏi trả lời ngắn..." value="${escapeHtml(data?.prompt || '')}"
           class="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm short-prompt" />
@@ -4032,6 +4043,7 @@
         </div>
       `;
       wrap.appendChild(card);
+      renumberEditorQuestions();
       updateQuestionImagePreview(card);
     }
 
